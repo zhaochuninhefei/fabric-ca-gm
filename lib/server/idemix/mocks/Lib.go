@@ -3,7 +3,8 @@ package mocks
 
 import FP256BN "github.com/hyperledger/fabric-amcl/amcl/FP256BN"
 import amcl "github.com/hyperledger/fabric-amcl/amcl"
-import ecdsa "crypto/ecdsa"
+// import ecdsa "crypto/ecdsa"
+import ecdsa "gitee.com/zhaochuninhefei/gmgo/sm2"
 import idemix "gitee.com/zhaochuninhefei/fabric-gm/idemix"
 import mock "github.com/stretchr/testify/mock"
 

@@ -11,7 +11,6 @@ package util
 
 import (
 	"path"
-	"strings"
 
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	"github.com/cloudflare/cfssl/log"
@@ -28,28 +27,49 @@ func ConfigureBCCSP(optsPtr **factory.FactoryOpts, mspDir, homeDir string) error
 	if opts == nil {
 		opts = &factory.FactoryOpts{}
 	}
-	if opts.ProviderName == "" {
-		opts.ProviderName = "SW"
+	// TODO 修改为强制使用国密
+	// if opts.ProviderName == "" {
+	// 	opts.ProviderName = "SW"
+	// }
+	// if strings.ToUpper(opts.ProviderName) == "SW" {
+	// 	if opts.SwOpts == nil {
+	// 		opts.SwOpts = &factory.SwOpts{}
+	// 	}
+	// 	if opts.SwOpts.HashFamily == "" {
+	// 		opts.SwOpts.HashFamily = "SHA2"
+	// 	}
+	// 	if opts.SwOpts.SecLevel == 0 {
+	// 		opts.SwOpts.SecLevel = 256
+	// 	}
+	// 	if opts.SwOpts.FileKeystore == nil {
+	// 		opts.SwOpts.FileKeystore = &factory.FileKeystoreOpts{}
+	// 	}
+	// 	// The mspDir overrides the KeyStorePath; otherwise, if not set, set default
+	// 	if mspDir != "" {
+	// 		opts.SwOpts.FileKeystore.KeyStorePath = path.Join(mspDir, "keystore")
+	// 	} else if opts.SwOpts.FileKeystore.KeyStorePath == "" {
+	// 		opts.SwOpts.FileKeystore.KeyStorePath = path.Join("msp", "keystore")
+	// 	}
+	// }
+	opts.ProviderName = "GM"
+	SetProviderName(opts.ProviderName)
+	if opts.SwOpts == nil {
+		opts.SwOpts = &factory.SwOpts{}
 	}
-	if strings.ToUpper(opts.ProviderName) == "SW" {
-		if opts.SwOpts == nil {
-			opts.SwOpts = &factory.SwOpts{}
-		}
-		if opts.SwOpts.HashFamily == "" {
-			opts.SwOpts.HashFamily = "SHA2"
-		}
-		if opts.SwOpts.SecLevel == 0 {
-			opts.SwOpts.SecLevel = 256
-		}
-		if opts.SwOpts.FileKeystore == nil {
-			opts.SwOpts.FileKeystore = &factory.FileKeystoreOpts{}
-		}
-		// The mspDir overrides the KeyStorePath; otherwise, if not set, set default
-		if mspDir != "" {
-			opts.SwOpts.FileKeystore.KeyStorePath = path.Join(mspDir, "keystore")
-		} else if opts.SwOpts.FileKeystore.KeyStorePath == "" {
-			opts.SwOpts.FileKeystore.KeyStorePath = path.Join("msp", "keystore")
-		}
+	if opts.SwOpts.HashFamily == "" {
+		opts.SwOpts.HashFamily = "GMSM3"
+	}
+	if opts.SwOpts.SecLevel == 0 {
+		opts.SwOpts.SecLevel = 256
+	}
+	if opts.SwOpts.FileKeystore == nil {
+		opts.SwOpts.FileKeystore = &factory.FileKeystoreOpts{}
+	}
+	// The mspDir overrides the KeyStorePath; otherwise, if not set, set default
+	if mspDir != "" {
+		opts.SwOpts.FileKeystore.KeyStorePath = path.Join(mspDir, "keystore")
+	} else if opts.SwOpts.FileKeystore.KeyStorePath == "" {
+		opts.SwOpts.FileKeystore.KeyStorePath = path.Join("msp", "keystore")
 	}
 	err = makeFileNamesAbsolute(opts, homeDir)
 	if err != nil {
@@ -58,6 +78,12 @@ func ConfigureBCCSP(optsPtr **factory.FactoryOpts, mspDir, homeDir string) error
 	log.Debugf("Initializing BCCSP: %+v", opts)
 	if opts.SwOpts != nil {
 		log.Debugf("Initializing BCCSP with software options %+v", opts.SwOpts)
+	}
+	// TODO 是否需要调用InitFactories?
+	// Init the BCCSP factories
+	err = factory.InitFactories(opts)
+	if err != nil {
+		return errors.WithMessage(err, "Failed to initialize BCCSP Factories")
 	}
 	*optsPtr = opts
 	return nil

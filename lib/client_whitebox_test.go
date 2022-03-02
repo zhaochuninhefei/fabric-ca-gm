@@ -22,6 +22,8 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	cspsigner "gitee.com/zhaochuninhefei/fabric-gm/bccsp/signer"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
+
+	// gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/cloudflare/cfssl/log"
 	"github.com/cloudflare/cfssl/signer"

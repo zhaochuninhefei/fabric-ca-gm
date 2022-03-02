@@ -6,14 +6,13 @@ SPDX-License-Identifier: Apache-2.0
 package idemix_test
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"testing"
 
 	. "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix/mocks"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	fp256bn "github.com/hyperledger/fabric-amcl/amcl/FP256BN"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -56,7 +55,8 @@ func TestGetCRI(t *testing.T) {
 	ctx.On("TokenAuthentication").Return("", nil)
 	issuer := new(mocks.MyIssuer)
 	ra := new(mocks.RevocationAuthority)
-	privateKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	// privateKey, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	privateKey, err := sm2.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("Failed to create ecdsa key: %s", err.Error())
 	}

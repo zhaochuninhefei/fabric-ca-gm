@@ -7,12 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package idemix
 
 import (
-	"crypto/ecdsa"
-	"crypto/x509"
+	// "crypto/ecdsa"
+	// "crypto/x509"
 	"encoding/pem"
 	"io/ioutil"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
@@ -23,10 +25,10 @@ type RevocationKey interface {
 	Load() error
 	// Store stores this revocation key to the disk
 	Store() error
-	// GetKey returns *ecdsa.PrivateKey that represents revocation public and private key pair
-	GetKey() *ecdsa.PrivateKey
+	// GetKey returns *sm2.PrivateKey that represents revocation public and private key pair
+	GetKey() *sm2.PrivateKey
 	// SetKey sets revocation public and private key
-	SetKey(key *ecdsa.PrivateKey)
+	SetKey(key *sm2.PrivateKey)
 	// SetNewKey creates new revocation public and private key pair and sets them in this object
 	SetNewKey() error
 }
@@ -35,7 +37,7 @@ type RevocationKey interface {
 type caIdemixRevocationKey struct {
 	pubKeyFile     string
 	privateKeyFile string
-	key            *ecdsa.PrivateKey
+	key            *sm2.PrivateKey
 	idemixLib      Lib
 }
 
@@ -103,12 +105,12 @@ func (rk *caIdemixRevocationKey) Store() error {
 }
 
 // GetKey returns revocation key
-func (rk *caIdemixRevocationKey) GetKey() *ecdsa.PrivateKey {
+func (rk *caIdemixRevocationKey) GetKey() *sm2.PrivateKey {
 	return rk.key
 }
 
 // SetKey sets revocation key
-func (rk *caIdemixRevocationKey) SetKey(key *ecdsa.PrivateKey) {
+func (rk *caIdemixRevocationKey) SetKey(key *sm2.PrivateKey) {
 	rk.key = key
 }
 
@@ -119,8 +121,9 @@ func (rk *caIdemixRevocationKey) SetNewKey() (err error) {
 }
 
 // EncodeKeys encodes ECDSA key pair to PEM encoding
-func EncodeKeys(privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey) ([]byte, []byte, error) {
-	encodedPK, err := x509.MarshalECPrivateKey(privateKey)
+func EncodeKeys(privateKey *sm2.PrivateKey, publicKey *sm2.PublicKey) ([]byte, []byte, error) {
+	// encodedPK, err := x509.MarshalECPrivateKey(privateKey)
+	encodedPK, err := x509.MarshalSm2PrivateKey(privateKey, nil)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Failed to encode ECDSA private key")
 	}
@@ -134,13 +137,14 @@ func EncodeKeys(privateKey *ecdsa.PrivateKey, publicKey *ecdsa.PublicKey) ([]byt
 	return pemEncodedPK, pemEncodedPubKey, nil
 }
 
-// DecodeKeys decodes ECDSA key pair that are pem encoded
-func DecodeKeys(pemEncodedPK, pemEncodedPubKey []byte) (*ecdsa.PrivateKey, *ecdsa.PublicKey, error) {
+// DecodeKeys decodes SM2 key pair that are pem encoded
+func DecodeKeys(pemEncodedPK, pemEncodedPubKey []byte) (*sm2.PrivateKey, *sm2.PublicKey, error) {
 	block, _ := pem.Decode(pemEncodedPK)
 	if block == nil {
 		return nil, nil, errors.New("Failed to decode ECDSA private key")
 	}
-	pk, err := x509.ParseECPrivateKey(block.Bytes)
+	// pk, err := x509.ParseECPrivateKey(block.Bytes)
+	pk, err := x509.ParseSm2PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Failed to parse ECDSA private key bytes")
 	}
@@ -152,7 +156,11 @@ func DecodeKeys(pemEncodedPK, pemEncodedPubKey []byte) (*ecdsa.PrivateKey, *ecds
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Failed to parse ECDSA public key bytes")
 	}
-	publicKey := key.(*ecdsa.PublicKey)
-
-	return pk, publicKey, nil
+	publicKey := key.(*sm2.PublicKey)
+	// TODO 转为sm2的PublicKey 该步骤可能不需要
+	var puk sm2.PublicKey
+	puk.Curve = sm2.P256Sm2()
+	puk.X = publicKey.X
+	puk.Y = publicKey.Y
+	return pk, &puk, nil
 }

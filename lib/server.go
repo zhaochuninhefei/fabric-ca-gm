@@ -8,8 +8,8 @@ package lib
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
+	// "crypto/tls"
+	// "crypto/x509"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -35,8 +35,11 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/operations"
 	stls "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics"
+	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/log"
 	"github.com/cloudflare/cfssl/revoke"
+
 	"github.com/cloudflare/cfssl/signer"
 	"github.com/felixge/httpsnoop"
 	ghandlers "github.com/gorilla/handlers"
@@ -646,7 +649,8 @@ func (s *Server) listenAndServe() (err error) {
 			}
 		}
 
-		cer, err := util.LoadX509KeyPair(c.TLS.CertFile, c.TLS.KeyFile, s.csp)
+		// TODO 国密改造
+		cer, err := util.LoadX509KeyPairSM2(c.TLS.CertFile, c.TLS.KeyFile, s.csp)
 		if err != nil {
 			return err
 		}

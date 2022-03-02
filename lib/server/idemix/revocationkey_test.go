@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package idemix_test
 
 import (
-	"crypto/ecdsa"
+	// "crypto/ecdsa"
 	"io/ioutil"
 	"os"
 	"path"
@@ -18,6 +18,7 @@ import (
 	. "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix/mocks"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -150,7 +151,7 @@ func TestStoreNilRevocationPublicKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create test revocation key: %s", err.Error())
 	}
-	key.PublicKey = ecdsa.PublicKey{}
+	key.PublicKey = sm2.PublicKey{}
 	rk.SetKey(key)
 	err = rk.Store()
 	assert.Error(t, err, "Should fail if store is called with empty revocation public key")

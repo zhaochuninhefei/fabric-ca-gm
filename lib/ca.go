@@ -41,6 +41,9 @@ import (
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/gm"
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
+	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/certdb"
 	"github.com/cloudflare/cfssl/config"
 	cfcsr "github.com/cloudflare/cfssl/csr"
@@ -146,6 +149,9 @@ func (ca *CA) init(renew bool) (err error) {
 	log.Debugf("Init CA with home %s and config %+v", ca.HomeDir, *ca.Config)
 
 	// Initialize the config, setting defaults, etc
+	// TODO 设置ProviderName
+	log.Info("#################name = ", ca.Config.CSP.ProviderName)
+	SetProviderName(ca.Config.CSP.ProviderName)
 	err = ca.initConfig()
 	if err != nil {
 		return err
@@ -332,7 +338,12 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 		}
 
 		if (csr.KeyRequest == nil) || (csr.KeyRequest.Algo == "" && csr.KeyRequest.Size == 0) {
-			csr.KeyRequest = GetKeyRequest(ca.Config)
+			// TODO 添加国密分支
+			if IsGMConfig() {
+				csr.KeyRequest = GetGMKeyRequest(ca.Config)
+			} else {
+				csr.KeyRequest = GetKeyRequest(ca.Config)
+			}
 		}
 		req := cfcsr.CertificateRequest{
 			CN:           csr.CN,
@@ -344,12 +355,18 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 		}
 		log.Debugf("Root CA certificate request: %+v", req)
 		// Generate the key/signer
-		_, cspSigner, err := util.BCCSPKeyRequestGenerate(&req, ca.csp)
+		// TODO 后续国密分支需要获取key
+		key, cspSigner, err := util.BCCSPKeyRequestGenerate(&req, ca.csp)
 		if err != nil {
 			return nil, err
 		}
 		// Call CFSSL to initialize the CA
-		cert, _, err = initca.NewFromSigner(&req, cspSigner)
+		// TODO 添加国密分支
+		if IsGMConfig() {
+			cert, err = createGmSm2Cert(key, &req, cspSigner)
+		} else {
+			cert, _, err = initca.NewFromSigner(&req, cspSigner)
+		}
 		if err != nil {
 			return nil, errors.WithMessage(err, "Failed to create new CA certificate")
 		}
@@ -469,6 +486,36 @@ func (ca *CA) initConfig() (err error) {
 	return nil
 }
 
+// TODO 获取国密证书的检查配置
+func getVerifyOptions(ca *CA) (*gx509.VerifyOptions, error) {
+	chain, err := ca.getCAChain()
+	if err != nil {
+		return nil, err
+	}
+	block, rest := pem.Decode(chain)
+	if block == nil {
+		return nil, errors.New("No root certificate was found")
+	}
+	rootCert, err := gx509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse root certificate: %s", err)
+	}
+	rootPool := gx509.NewCertPool()
+	rootPool.AddCert(rootCert)
+	var intPool *gx509.CertPool
+	if len(rest) > 0 {
+		intPool = gx509.NewCertPool()
+		if !intPool.AppendCertsFromPEM(rest) {
+			return nil, errors.New("Failed to add intermediate PEM certificates")
+		}
+	}
+	return &gx509.VerifyOptions{
+		Roots:         rootPool,
+		Intermediates: intPool,
+		KeyUsages:     []gx509.ExtKeyUsage{gx509.ExtKeyUsageAny},
+	}, nil
+}
+
 // VerifyCertificate verifies that 'cert' was issued by this CA
 // Return nil if successful; otherwise, return an error.
 // 'forceTime' if false, certificate expiry times will be checked based
@@ -478,8 +525,11 @@ func (ca *CA) initConfig() (err error) {
 func (ca *CA) VerifyCertificate(cert *x509.Certificate, forceTime bool) error {
 
 	log.Debugf("Certicate Dates: NotAfter = %s NotBefore = %s \n", cert.NotAfter.String(), cert.NotBefore.String())
-
-	opts, err := ca.getVerifyOptions()
+	// TODO 国密改造
+	sm2Cert := gm.ParseX509Certificate2Sm2(cert)
+	sm2Cert.SignatureAlgorithm = gx509.SM2WithSM3
+	opts, err := getVerifyOptions(ca)
+	// opts, err := ca.getVerifyOptions()
 	if err != nil {
 		return errors.WithMessage(err, "Failed to get verify options")
 	}
@@ -489,8 +539,8 @@ func (ca *CA) VerifyCertificate(cert *x509.Certificate, forceTime bool) error {
 	if forceTime {
 		opts.CurrentTime = cert.NotBefore.Add(time.Duration(time.Second * 30))
 	}
-
-	_, err = cert.Verify(*opts)
+	// TODO 国密改造
+	_, err = sm2Cert.Verify(*opts)
 	if err != nil {
 		return errors.WithMessage(err, "Failed to verify certificate")
 	}
@@ -1153,6 +1203,15 @@ func validateMatchingKeys(cert *x509.Certificate, keyFile string) error {
 
 	pubKey := cert.PublicKey
 	switch pubKey := pubKey.(type) {
+	// TODO 添加sm2分支
+	case *sm2.PublicKey:
+		privKey, err := util.GetSM2PrivateKey(keyPEM)
+		if err != nil {
+			return err
+		}
+		if pubKey.X.Cmp(privKey.X) != 0 || pubKey.Y.Cmp(privKey.Y) != 0 {
+			return errors.New("sm2 private key does not match public key")
+		}
 	case *rsa.PublicKey:
 		privKey, err := util.GetRSAPrivateKey(keyPEM)
 		if err != nil {
@@ -1163,14 +1222,29 @@ func validateMatchingKeys(cert *x509.Certificate, keyFile string) error {
 			return errors.New("Public key and private key do not match")
 		}
 	case *ecdsa.PublicKey:
-		privKey, err := util.GetECPrivateKey(keyPEM)
-		if err != nil {
-			return err
-		}
+		// pub, _ := cert.PublicKey.(*ecdsa.PublicKey)
+		// TODO 这里的分支可能不需要了
+		switch pubKey.Curve {
+		case sm2.P256Sm2():
+			privKey, err := util.GetSM2PrivateKey(keyPEM)
+			if err != nil {
+				return err
+			}
+			if pubKey.X.Cmp(privKey.X) != 0 || pubKey.Y.Cmp(privKey.Y) != 0 {
+				return errors.New("sm2 private key does not match public key")
+			}
+		default:
+			privKey, err := util.GetECPrivateKey(keyPEM)
+			if err != nil {
+				return err
+			}
 
-		if privKey.PublicKey.X.Cmp(pubKey.X) != 0 {
-			return errors.New("Public key and private key do not match")
+			if privKey.PublicKey.X.Cmp(pubKey.X) != 0 {
+				return errors.New("Public key and private key do not match")
+			}
 		}
+	default:
+		return errors.New("Unsupported public key")
 	}
 
 	return nil

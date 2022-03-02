@@ -8,7 +8,7 @@ package idemix_test
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	// "crypto/ecdsa"
 	"io/ioutil"
 	"os"
 	"path"
@@ -19,6 +19,7 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix/mocks"
 	dmocks "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix/mocks"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	fp256bn "github.com/hyperledger/fabric-amcl/amcl/FP256BN"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -608,7 +609,7 @@ func TestEpochValuesInCRI(t *testing.T) {
 	}
 }
 
-func setupForInsertTests(t *testing.T, homeDir string) (*mocks.MyIssuer, *dmocks.FabricCADB, *ecdsa.PrivateKey) {
+func setupForInsertTests(t *testing.T, homeDir string) (*mocks.MyIssuer, *dmocks.FabricCADB, *sm2.PrivateKey) {
 	issuer := new(mocks.MyIssuer)
 	issuer.On("Name").Return("")
 	issuer.On("HomeDir").Return(homeDir)
@@ -631,7 +632,7 @@ func setupForInsertTests(t *testing.T, homeDir string) (*mocks.MyIssuer, *dmocks
 	return issuer, db, privateKey
 }
 
-func getRevocationAuthority(t *testing.T, funcName, homeDir string, db *dmocks.FabricCADB, revocationKey *ecdsa.PrivateKey, revokedCred int,
+func getRevocationAuthority(t *testing.T, funcName, homeDir string, db *dmocks.FabricCADB, revocationKey *sm2.PrivateKey, revokedCred int,
 	getRevokedCredsError bool, idemixCreateCRIError bool, selectFnc func(string, interface{}, string, ...interface{}) error) RevocationAuthority {
 	issuer := new(mocks.MyIssuer)
 	issuer.On("Name").Return("ca1")

@@ -25,6 +25,9 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
+
+	// tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
+	// "gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )

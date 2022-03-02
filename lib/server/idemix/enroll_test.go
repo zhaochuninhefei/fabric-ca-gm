@@ -6,8 +6,6 @@ SPDX-License-Identifier: Apache-2.0
 package idemix_test
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"testing"
 
@@ -16,6 +14,7 @@ import (
 	. "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix/mocks"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	proto "github.com/golang/protobuf/proto"
 	fp256bn "github.com/hyperledger/fabric-amcl/amcl/FP256BN"
 	"github.com/pkg/errors"
@@ -499,7 +498,8 @@ func TestGetAttributeValues(t *testing.T) {
 }
 
 func createCRI(t *testing.T) (*idemix.CredentialRevocationInformation, error) {
-	key, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	// key, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	key, err := sm2.GenerateKey(rand.Reader)
 	if err != nil {
 		return nil, err
 	}

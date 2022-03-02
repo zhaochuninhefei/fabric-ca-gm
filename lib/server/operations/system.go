@@ -8,7 +8,7 @@ package operations
 
 import (
 	"context"
-	"crypto/tls"
+	// "crypto/tls"
 	"fmt"
 	"io"
 	"net"
@@ -21,6 +21,7 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/disabled"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/prometheus"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/statsd"
+	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
 	"github.com/cloudflare/cfssl/log"
 	kitstatsd "github.com/go-kit/kit/metrics/statsd"
 	"github.com/gorilla/mux"

@@ -355,3 +355,9 @@ func NewKeyRequest() *KeyRequest {
 	bkr := csr.NewKeyRequest()
 	return &KeyRequest{Algo: bkr.A, Size: bkr.S}
 }
+
+// TODO 添加NewKeyRequest的国密版本
+func NewGMKeyRequest() *KeyRequest {
+	bkr := &csr.KeyRequest{A: "sm2", S: 256}
+	return &KeyRequest{Algo: bkr.A, Size: bkr.S}
+}

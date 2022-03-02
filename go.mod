@@ -3,8 +3,8 @@ module gitee.com/zhaochuninhefei/fabric-ca-gm
 go 1.17
 
 require (
-	gitee.com/zhaochuninhefei/fabric-gm v0.0.1
-	gitee.com/zhaochuninhefei/gmgo v0.0.3
+	gitee.com/zhaochuninhefei/fabric-gm v0.0.2
+	gitee.com/zhaochuninhefei/gmgo v0.0.4
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/cloudflare/cfssl v1.6.1
 	github.com/felixge/httpsnoop v1.0.1
@@ -54,6 +54,7 @@ require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/fullstorydev/grpcurl v1.8.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
+	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -135,7 +136,6 @@ require (
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
-replace (
-	gitee.com/zhaochuninhefei/fabric-gm => ../fabric-gm
-	gitee.com/zhaochuninhefei/gmgo => /home/zhaochun/work/sources/gm-zc/gmgo
-)
+// gitee.com/zhaochuninhefei/fabric-gm => ../fabric-gm
+// gitee.com/zhaochuninhefei/gmgo => /home/zhaochun/work/sources/gm-zc/gmgo
+replace github.com/go-kit/kit => github.com/go-kit/kit v0.7.0

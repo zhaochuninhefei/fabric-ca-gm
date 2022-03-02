@@ -13,6 +13,7 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attrmgr"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/gm"
 	"github.com/pkg/errors"
 )
 
@@ -33,6 +34,7 @@ func NewSigner(key bccsp.Key, cert []byte) (*Signer, error) {
 
 // Signer represents a signer
 // Each identity may have multiple signers and currently one ecert
+// TODO 是否需要将x509改为国密x509?
 type Signer struct {
 	// Private key
 	key bccsp.Key
@@ -68,7 +70,9 @@ func (s *Signer) GetName() string {
 // Attributes returns the attributes that are in the certificate
 func (s *Signer) Attributes() (*attrmgr.Attributes, error) {
 	cert := s.GetX509Cert()
-	attrs, err := attrmgr.New().GetAttributesFromCert(cert)
+	// TODO 将x509证书转为sm2证书
+	sm2Cert := gm.ParseX509Certificate2Sm2(cert)
+	attrs, err := attrmgr.New().GetAttributesFromCert(sm2Cert)
 	if err != nil {
 		return nil, fmt.Errorf("Failed getting attributes for '%s': %s", s.name, err)
 	}

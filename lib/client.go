@@ -141,6 +141,8 @@ func (c *Client) Init() error {
 		// Successfully initialized the client
 		c.initialized = true
 	}
+	// TODO 设置ProviderName
+	SetProviderName(c.Config.CSP.ProviderName)
 	return nil
 }
 
@@ -160,6 +162,8 @@ func (c *Client) initHTTPClient() error {
 		}
 		// set the default ciphers
 		tlsConfig.CipherSuites = tls.DefaultCipherSuites
+		// TODO tr是go内建的`http.Transport`类型，无法支持gmgo的tls，
+		// 因此"lib/tls/tls.go"中的"crypto/tls"依赖不能改为"gitee.com/zhaochuninhefei/gmgo/gmtls"
 		tr.TLSClientConfig = tlsConfig
 	}
 	c.httpClient = &http.Client{Transport: tr}
@@ -549,7 +553,9 @@ func (c *Client) newCertificateRequest(req *api.CSRInfo, id string) *csr.Certifi
 
 		keyRequest := req.KeyRequest
 		if keyRequest == nil || (keyRequest.Size == 0 && keyRequest.Algo == "") {
-			keyRequest = api.NewKeyRequest()
+			// TODO 国密改造
+			// keyRequest = api.NewKeyRequest()
+			keyRequest = api.NewGMKeyRequest()
 		}
 		cr.KeyRequest = newCfsslKeyRequest(keyRequest)
 
@@ -562,7 +568,9 @@ func (c *Client) newCertificateRequest(req *api.CSRInfo, id string) *csr.Certifi
 		cr.Hosts = []string{hostname}
 	}
 
-	cr.KeyRequest = newCfsslKeyRequest(api.NewKeyRequest())
+	// TODO 国密改造
+	// cr.KeyRequest = newCfsslKeyRequest(api.NewKeyRequest())
+	cr.KeyRequest = newCfsslKeyRequest(api.NewGMKeyRequest())
 
 	return cr
 }

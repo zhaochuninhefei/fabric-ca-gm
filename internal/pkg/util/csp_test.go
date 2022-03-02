@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package util_test
 
 import (
-	// "crypto/x509"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -17,7 +17,8 @@ import (
 	. "gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
-	"gitee.com/zhaochuninhefei/gmgo/x509"
+
+	// "gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/stretchr/testify/assert"
 )

@@ -16,6 +16,8 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
+	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
+
 	"github.com/cloudflare/cfssl/config"
 	"github.com/cloudflare/cfssl/csr"
 	cferr "github.com/cloudflare/cfssl/errors"
@@ -151,7 +153,9 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 		req.Extensions = append(req.Extensions, *ext)
 	}
 	// Sign the certificate
-	cert, err := ca.enrollSigner.Sign(req.SignRequest)
+	// TODO 国密改造
+	// cert, err := ca.enrollSigner.Sign(req.SignRequest)
+	cert, err := signCert(req.SignRequest, ca)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Certificate signing failure")
 	}
@@ -185,7 +189,16 @@ func processSignRequest(id string, req *signer.SignRequest, ca *CA, ctx *serverR
 		return cferr.Wrap(cferr.CSRError,
 			cferr.BadRequest, errors.New("not a certificate or csr"))
 	}
-	csrReq, err := x509.ParseCertificateRequest(block.Bytes)
+	var csrReq *x509.CertificateRequest
+	var err error
+	if IsGMConfig() {
+		sm2csrReq, err := gx509.ParseCertificateRequest(block.Bytes)
+		if err == nil {
+			csrReq = ParseSm2CertificateRequest2X509(sm2csrReq)
+		}
+	} else {
+		csrReq, err = x509.ParseCertificateRequest(block.Bytes)
+	}
 	if err != nil {
 		return err
 	}

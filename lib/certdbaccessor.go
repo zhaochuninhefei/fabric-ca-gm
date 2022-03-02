@@ -229,6 +229,15 @@ func (d *CertDBAccessor) GetRevokedAndUnexpiredCertificatesByLabel(label string)
 	return crs, err
 }
 
+// TODO 添加 GetRevokedAndUnexpiredCertificatesByLabelSelectColumns
+func (d *CertDBAccessor) GetRevokedAndUnexpiredCertificatesByLabelSelectColumns(label string) ([]certdb.CertificateRecord, error) {
+	crs, err := d.accessor.GetRevokedAndUnexpiredCertificatesByLabelSelectColumns(label)
+	if err != nil {
+		return nil, err
+	}
+	return crs, err
+}
+
 // RevokeCertificatesByID updates all certificates for a given ID and marks them revoked.
 func (d *CertDBAccessor) RevokeCertificatesByID(id string, reasonCode int) (crs []db.CertRecord, err error) {
 	log.Debugf("DB: Revoke certificate by ID (%s)", id)

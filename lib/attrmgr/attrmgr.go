@@ -12,12 +12,13 @@ SPDX-License-Identifier: Apache-2.0
 package attrmgr
 
 import (
-	"crypto/x509"
+	// "crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/json"
 	"fmt"
 
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/pkg/errors"
 )
 

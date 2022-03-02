@@ -23,6 +23,8 @@ import (
 	. "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential/x509"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential/x509/mocks"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
+
+	// "gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/stretchr/testify/assert"
 )
 
