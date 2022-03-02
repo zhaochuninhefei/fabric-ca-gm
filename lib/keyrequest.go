@@ -22,3 +22,10 @@ func GetKeyRequest(cfg *CAConfig) *api.KeyRequest {
 		return api.NewKeyRequest()
 	}
 }
+
+func GetGMKeyRequest(cfg *CAConfig) *api.KeyRequest {
+	if cfg.CSP.SwOpts != nil {
+		return &api.KeyRequest{Algo: "sm2", Size: cfg.CSP.SwOpts.SecLevel}
+	}
+	return api.NewGMKeyRequest()
+}

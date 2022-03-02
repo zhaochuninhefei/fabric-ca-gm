@@ -1,3 +1,4 @@
 .vscode/settings.json
 release/linux-amd64/bin/fabric-ca-client
 release/linux-amd64/bin/fabric-ca-server
+build/image/fabric-ca/.dummy-amd64-1.5.2
