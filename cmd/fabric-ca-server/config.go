@@ -339,7 +339,7 @@ signing:
 csr:
    cn: <<<COMMONNAME>>>
    keyrequest:
-     algo: sm2
+     algo: SM2
      size: 256
    names:
       - C: US
@@ -385,7 +385,7 @@ idemix:
 bccsp:
     default: GM
     GM:
-        hash: GMSM3
+        hash: SM3
         security: 256
         filekeystore:
             # The directory used for the software file-based keystore

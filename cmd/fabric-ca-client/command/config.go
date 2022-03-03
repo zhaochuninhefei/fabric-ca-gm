@@ -141,7 +141,7 @@ tls:
 csr:
   cn: <<<ENROLLMENT_ID>>>
   keyrequest:
-    algo: gmsm2
+    algo: SM2
     size: 256
     reusekey: false
   serialnumber:
@@ -196,7 +196,7 @@ caname:
 bccsp:
     default: GM
     GM:
-        hash: GMSM3
+        hash: SM3
         security: 256
         filekeystore:
             # The directory used for the software file-based keystore

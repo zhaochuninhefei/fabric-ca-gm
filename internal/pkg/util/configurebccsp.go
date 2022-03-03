@@ -13,6 +13,7 @@ import (
 	"path"
 	"strings"
 
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/pkcs11"
 	"github.com/cloudflare/cfssl/log"
@@ -59,7 +60,7 @@ func ConfigureBCCSP(optsPtr **factory.FactoryOpts, mspDir, homeDir string) error
 		opts.SwOpts = &factory.SwOpts{}
 	}
 	if opts.SwOpts.HashFamily == "" {
-		opts.SwOpts.HashFamily = "GMSM3"
+		opts.SwOpts.HashFamily = bccsp.GMSM3
 	}
 	if opts.SwOpts.SecLevel == 0 {
 		opts.SwOpts.SecLevel = 256

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"github.com/cloudflare/cfssl/csr"
 )
 
@@ -358,6 +359,6 @@ func NewKeyRequest() *KeyRequest {
 
 // TODO 添加NewKeyRequest的国密版本
 func NewGMKeyRequest() *KeyRequest {
-	bkr := &csr.KeyRequest{A: "sm2", S: 256}
+	bkr := &csr.KeyRequest{A: bccsp.GMSM2, S: 256}
 	return &KeyRequest{Algo: bkr.A, Size: bkr.S}
 }

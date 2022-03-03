@@ -9,7 +9,10 @@ SPDX-License-Identifier: Apache-2.0
 
 package lib
 
-import "gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
+import (
+	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
+)
 
 // GetKeyRequest constructs and returns api.KeyRequest object based on the bccsp
 // configuration options
@@ -23,7 +26,7 @@ func GetKeyRequest(cfg *CAConfig) *api.KeyRequest {
 // TODO 添加GetKeyRequest的国密版本
 func GetGMKeyRequest(cfg *CAConfig) *api.KeyRequest {
 	if cfg.CSP.SwOpts != nil {
-		return &api.KeyRequest{Algo: "sm2", Size: cfg.CSP.SwOpts.SecLevel}
+		return &api.KeyRequest{Algo: bccsp.GMSM2, Size: cfg.CSP.SwOpts.SecLevel}
 	}
 	return api.NewGMKeyRequest()
 }

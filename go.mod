@@ -3,8 +3,8 @@ module gitee.com/zhaochuninhefei/fabric-ca-gm
 go 1.17
 
 require (
-	gitee.com/zhaochuninhefei/fabric-gm v0.0.2
-	gitee.com/zhaochuninhefei/gmgo v0.0.4
+	gitee.com/zhaochuninhefei/fabric-gm v0.0.3
+	gitee.com/zhaochuninhefei/gmgo v0.0.5
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/cloudflare/cfssl v1.6.1
 	github.com/felixge/httpsnoop v1.0.1

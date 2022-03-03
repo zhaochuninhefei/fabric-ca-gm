@@ -142,7 +142,7 @@ func getBCCSPKeyOpts(kr *csr.KeyRequest, ephemeral bool) (opts bccsp.KeyGenOpts,
 		default:
 			return nil, errors.Errorf("Invalid ECDSA key size: %d", kr.Size())
 		}
-	case "gmsm2":
+	case bccsp.GMSM2:
 		return &bccsp.GMSM2KeyGenOpts{Temporary: ephemeral}, nil
 	default:
 		return nil, errors.Errorf("Invalid algorithm: %s", kr.Algo())
@@ -258,7 +258,7 @@ func ImportBCCSPKeyFromPEM(keyFile string, myCSP bccsp.BCCSP, temporary bool) (b
 		opts := &factory.FactoryOpts{
 			ProviderName: "GM",
 			SwOpts: &factory.SwOpts{
-				HashFamily: "GMSM3",
+				HashFamily: bccsp.GMSM3,
 				SecLevel:   256,
 
 				FileKeystore: &factory.FileKeystoreOpts{

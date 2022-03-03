@@ -64,10 +64,11 @@ contrib.go.opencensus.io/resource v0.1.1/go.mod h1:F361eGI91LCmW1I/Saf+rX0+OFcig
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 gitee.com/zhaochuninhefei/fabric-chaincode-go-gm v0.0.3/go.mod h1:XIK6h+Wns5Qq9axlLKeuT1uuk5aUT4QeASCw3jK9Uvo=
 gitee.com/zhaochuninhefei/fabric-config-gm v0.0.2/go.mod h1:BxyMqBjoou0YXK4acsQdPamW2krhTvnDDixJ9ubSwNI=
-gitee.com/zhaochuninhefei/fabric-gm v0.0.2 h1:uTcLnY41cgNAaHZLl4jDHpCzSVahzNvee0RNpiJHV8Q=
-gitee.com/zhaochuninhefei/fabric-gm v0.0.2/go.mod h1:3XYLImq5qSIpYJB3q40akqf/P4icdl4znGhPm7ONhHk=
-gitee.com/zhaochuninhefei/gmgo v0.0.4 h1:yH3SJi2zpsjBJJIRAR0Taq1fhGTPP6MGe90vbcKLpQE=
+gitee.com/zhaochuninhefei/fabric-gm v0.0.3 h1:w8fZrL/f4L59MbzxzWttLvYq8WOHXMg8/3dHxXHn/dM=
+gitee.com/zhaochuninhefei/fabric-gm v0.0.3/go.mod h1:eNDUggQLZmMyGR5ZE7DeIl597d9iIzm+D/BvVHv7pjM=
 gitee.com/zhaochuninhefei/gmgo v0.0.4/go.mod h1:kQv8Tn9hZ4d1WV0zpHmMDaCq+syJmrAvHQbgezTqEwI=
+gitee.com/zhaochuninhefei/gmgo v0.0.5 h1:jt3iUxFeCnt1T1k1hFFRKk1dvSWxxReVXslFZlOlc4k=
+gitee.com/zhaochuninhefei/gmgo v0.0.5/go.mod h1:kQv8Tn9hZ4d1WV0zpHmMDaCq+syJmrAvHQbgezTqEwI=
 gitee.com/zhaochuninhefei/saramagm v0.0.2/go.mod h1:TXK+/AZklVYMKmLDlt7dcYpns6YMhK0oIVWjixNKGeE=
 github.com/Azure/azure-amqp-common-go/v2 v2.1.0/go.mod h1:R8rea+gJRuJR6QxTir/XuEd+YuKoUiazDC/N96FiDEU=
 github.com/Azure/azure-pipeline-go v0.2.1/go.mod h1:UGSo8XybXnIGZ3epmeBw7Jdz+HiUVpqIlpz/HKHylF4=
