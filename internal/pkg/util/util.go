@@ -177,7 +177,7 @@ func GenECDSAToken(csp bccsp.BCCSP, cert []byte, key bccsp.Key, method, uri stri
 }
 
 func genECDSAToken(csp bccsp.BCCSP, key bccsp.Key, b64cert, payload string) (string, error) {
-	digest, digestError := csp.Hash([]byte(payload), &bccsp.GMSM3Opts{})
+	digest, digestError := csp.Hash([]byte(payload), &bccsp.SM3Opts{})
 	fmt.Printf("digest---,%v", digest)
 	if digestError != nil {
 		return "", errors.WithMessage(digestError, fmt.Sprintf("Hash failed on '%s'", payload))
@@ -219,7 +219,7 @@ func VerifyToken(csp bccsp.BCCSP, token string, method, uri string, body []byte,
 	sigString := method + "." + b64uri + "." + b64Body + "." + b64Cert
 	log.Infof("xxx before csp .KeyImport csp : %T b64Body %s", csp, sigString)
 	sm2cert := ParseX509Certificate2Sm2(x509Cert)
-	pk2, err := csp.KeyImport(sm2cert, &bccsp.X509PublicKeyImportOpts{Temporary: true})
+	pk2, err := csp.KeyImport(sm2cert, &bccsp.GMX509PublicKeyImportOpts{Temporary: true})
 	log.Infof("xxx end csp .KeyImport pk2 : %T", pk2)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Public Key import into BCCSP failed with error")
@@ -230,7 +230,7 @@ func VerifyToken(csp bccsp.BCCSP, token string, method, uri string, body []byte,
 
 	//bccsp.X509PublicKeyImportOpts
 	//Using default hash algo
-	digest, digestError := csp.Hash([]byte(sigString), &bccsp.GMSM3Opts{})
+	digest, digestError := csp.Hash([]byte(sigString), &bccsp.SM3Opts{})
 	fmt.Printf("digest---,%v", digest)
 	if digestError != nil {
 		return nil, errors.WithMessage(digestError, "Message digest failed")
@@ -240,7 +240,7 @@ func VerifyToken(csp bccsp.BCCSP, token string, method, uri string, body []byte,
 	if compMode1_3 && !valid {
 		log.Debugf("Failed to verify token based on new authentication header requirements: %s", err)
 		sigString := b64Body + "." + b64Cert
-		digest, digestError := csp.Hash([]byte(sigString), &bccsp.SHA256Opts{})
+		digest, digestError := csp.Hash([]byte(sigString), &bccsp.SM3Opts{})
 		if digestError != nil {
 			return nil, errors.WithMessage(digestError, "Message digest failed")
 		}
@@ -926,7 +926,6 @@ func IsGMConfig() bool {
 func SetProviderName(name string) {
 	providerName = name
 }
-
 
 // ListContains looks through a comma separated list to see if a string exists
 func ListContains(list, find string) bool {

@@ -62,14 +62,9 @@ contrib.go.opencensus.io/exporter/stackdriver v0.13.5/go.mod h1:aXENhDJ1Y4lIg4EU
 contrib.go.opencensus.io/integrations/ocsql v0.1.4/go.mod h1:8DsSdjz3F+APR+0z0WkU1aRorQCFfRxvqjUUPMbF3fE=
 contrib.go.opencensus.io/resource v0.1.1/go.mod h1:F361eGI91LCmW1I/Saf+rX0+OFcigGlFvXwEGEnkRLA=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-gitee.com/zhaochuninhefei/fabric-chaincode-go-gm v0.0.3/go.mod h1:XIK6h+Wns5Qq9axlLKeuT1uuk5aUT4QeASCw3jK9Uvo=
-gitee.com/zhaochuninhefei/fabric-config-gm v0.0.2/go.mod h1:BxyMqBjoou0YXK4acsQdPamW2krhTvnDDixJ9ubSwNI=
-gitee.com/zhaochuninhefei/fabric-gm v0.0.3 h1:w8fZrL/f4L59MbzxzWttLvYq8WOHXMg8/3dHxXHn/dM=
-gitee.com/zhaochuninhefei/fabric-gm v0.0.3/go.mod h1:eNDUggQLZmMyGR5ZE7DeIl597d9iIzm+D/BvVHv7pjM=
-gitee.com/zhaochuninhefei/gmgo v0.0.4/go.mod h1:kQv8Tn9hZ4d1WV0zpHmMDaCq+syJmrAvHQbgezTqEwI=
-gitee.com/zhaochuninhefei/gmgo v0.0.5 h1:jt3iUxFeCnt1T1k1hFFRKk1dvSWxxReVXslFZlOlc4k=
-gitee.com/zhaochuninhefei/gmgo v0.0.5/go.mod h1:kQv8Tn9hZ4d1WV0zpHmMDaCq+syJmrAvHQbgezTqEwI=
-gitee.com/zhaochuninhefei/saramagm v0.0.2/go.mod h1:TXK+/AZklVYMKmLDlt7dcYpns6YMhK0oIVWjixNKGeE=
+gitee.com/zhaochuninhefei/fabric-chaincode-go-gm v0.0.4/go.mod h1:Iy6juCsv+EeWTNpS76CWuV2z8a3AQuHMhGQswURKFAk=
+gitee.com/zhaochuninhefei/fabric-config-gm v0.0.3/go.mod h1:Rev+SIKrd0ckJtUbXXxHzJ4xJvgtaNGqTAzDpVEq9No=
+gitee.com/zhaochuninhefei/saramagm v0.0.3/go.mod h1:K8kOCR9T3BourrxwKkzruPbWmlpnbkpJ97apaDyd0pI=
 github.com/Azure/azure-amqp-common-go/v2 v2.1.0/go.mod h1:R8rea+gJRuJR6QxTir/XuEd+YuKoUiazDC/N96FiDEU=
 github.com/Azure/azure-pipeline-go v0.2.1/go.mod h1:UGSo8XybXnIGZ3epmeBw7Jdz+HiUVpqIlpz/HKHylF4=
 github.com/Azure/azure-sdk-for-go v16.2.1+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
@@ -803,7 +798,6 @@ github.com/miekg/dns v1.1.26/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKju
 github.com/miekg/dns v1.1.41/go.mod h1:p6aan82bvRIyn+zDIv9xYNUpwa73JcSh9BKwknJysuI=
 github.com/miekg/pkcs11 v1.0.2/go.mod h1:XsNlhZGX73bx86s2hdc/FuaLm2CPZJemRLMA+WTFxgs=
 github.com/miekg/pkcs11 v1.0.3/go.mod h1:XsNlhZGX73bx86s2hdc/FuaLm2CPZJemRLMA+WTFxgs=
-github.com/miekg/pkcs11 v1.1.1 h1:Ugu9pdy6vAYku5DEpVWVFPYnzV+bxB+iRdbuFSu7TvU=
 github.com/miekg/pkcs11 v1.1.1/go.mod h1:XsNlhZGX73bx86s2hdc/FuaLm2CPZJemRLMA+WTFxgs=
 github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible/go.mod h1:8AuVvqP/mXw1px98n46wfvcGfQ4ci2FwoAjKYxuo3Z4=
 github.com/mitchellh/cli v1.0.0/go.mod h1:hNIlj7HEI86fIcpObd7a0FcrxTWetlwJDGcceTlRvqc=
@@ -1489,8 +1483,8 @@ golang.org/x/sys v0.0.0-20211124211545-fe61309f8881/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20211210111614-af8b64212486/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20220209214540-3681064d5158 h1:rm+CHSpPEEW2IsXUib1ThaHIjuBVZjxNgSKmBLFfD4c=
-golang.org/x/sys v0.0.0-20220209214540-3681064d5158/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5 h1:y/woIyUBFbpQGKS0u1aHF/40WUDnek3fPOyD08H5Vng=
+golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXRh80K7BxOlk5/8JxuGnuhpl+muw=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=

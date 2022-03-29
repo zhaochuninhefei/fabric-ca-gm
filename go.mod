@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	gitee.com/zhaochuninhefei/fabric-gm v0.0.3
-	gitee.com/zhaochuninhefei/gmgo v0.0.5
+	gitee.com/zhaochuninhefei/gmgo v0.0.7
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/cloudflare/cfssl v1.6.1
 	github.com/felixge/httpsnoop v1.0.1
@@ -75,7 +75,6 @@ require (
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
-	github.com/miekg/pkcs11 v1.1.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
@@ -118,7 +117,7 @@ require (
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	golang.org/x/tools v0.1.9 // indirect
@@ -136,6 +135,8 @@ require (
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
-// gitee.com/zhaochuninhefei/fabric-gm => ../fabric-gm
-// gitee.com/zhaochuninhefei/gmgo => /home/zhaochun/work/sources/gm-zc/gmgo
+replace gitee.com/zhaochuninhefei/fabric-gm => ../fabric-gm
+
+replace gitee.com/zhaochuninhefei/gmgo => /home/zhaochun/work/sources/gm-zc/gmgo
+
 replace github.com/go-kit/kit => github.com/go-kit/kit v0.7.0

@@ -41,7 +41,7 @@ import (
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
-	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/gm"
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/sw"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/certdb"
@@ -526,7 +526,7 @@ func (ca *CA) VerifyCertificate(cert *x509.Certificate, forceTime bool) error {
 
 	log.Debugf("Certicate Dates: NotAfter = %s NotBefore = %s \n", cert.NotAfter.String(), cert.NotBefore.String())
 	// TODO 国密改造
-	sm2Cert := gm.ParseX509Certificate2Sm2(cert)
+	sm2Cert := sw.ParseX509Certificate2Sm2(cert)
 	sm2Cert.SignatureAlgorithm = gx509.SM2WithSM3
 	opts, err := getVerifyOptions(ca)
 	// opts, err := ca.getVerifyOptions()

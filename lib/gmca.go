@@ -18,7 +18,7 @@ import (
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
-	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/gm"
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/sw"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/certdb"
@@ -66,7 +66,7 @@ func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	log.Infof("^^^^^^^^^^^^^^^^^^^^^^^x509cert = %v", x509cert)
 	rootca := ParseX509Certificate2Sm2(x509cert)
 
-	cert, err = gm.CreateCertificateToMem(template, rootca, rootkey)
+	cert, err = sw.CreateCertificateToMem(template, rootca, rootkey)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func createGmSm2Cert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Sig
 		return nil, err
 	}
 	log.Infof("key is %T   ---%T", sm2Template.PublicKey, sm2Template)
-	cert, err = gm.CreateCertificateToMem(sm2Template, sm2Template, key)
+	cert, err = sw.CreateCertificateToMem(sm2Template, sm2Template, key)
 	return
 }
 
@@ -225,7 +225,7 @@ func generate(priv crypto.Signer, req *csr.CertificateRequest, key bccsp.Key) (c
 	if req.SerialNumber != "" {
 
 	}
-	csr, err = gm.CreateSm2CertificateRequestToMem(&tpl, key)
+	csr, err = sw.CreateSm2CertificateRequestToMem(&tpl, key)
 	log.Info("xx exit generate")
 	return
 }

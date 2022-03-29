@@ -35,7 +35,7 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/sqlite"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/gm"
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/sw"
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/cloudflare/cfssl/log"
 	"github.com/stretchr/testify/assert"
@@ -907,7 +907,7 @@ func checkAttrsInCert(t *testing.T, home, name, val, missing string) {
 		t.Fatalf("Failed to load test user's cert: %s", err)
 	}
 
-	sm2Cert := gm.ParseX509Certificate2Sm2(cert)
+	sm2Cert := sw.ParseX509Certificate2Sm2(cert)
 	// Get the attributes from the cert
 	attrs, err := attrmgr.New().GetAttributesFromCert(sm2Cert)
 	if err != nil {

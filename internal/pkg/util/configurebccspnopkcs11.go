@@ -52,13 +52,13 @@ func ConfigureBCCSP(optsPtr **factory.FactoryOpts, mspDir, homeDir string) error
 	// 		opts.SwOpts.FileKeystore.KeyStorePath = path.Join("msp", "keystore")
 	// 	}
 	// }
-	opts.ProviderName = "GM"
+	opts.ProviderName = "SW"
 	SetProviderName(opts.ProviderName)
 	if opts.SwOpts == nil {
 		opts.SwOpts = &factory.SwOpts{}
 	}
 	if opts.SwOpts.HashFamily == "" {
-		opts.SwOpts.HashFamily = bccsp.GMSM3
+		opts.SwOpts.HashFamily = bccsp.SM3
 	}
 	if opts.SwOpts.SecLevel == 0 {
 		opts.SwOpts.SecLevel = 256
