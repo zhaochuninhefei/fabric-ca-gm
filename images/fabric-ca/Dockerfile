@@ -20,6 +20,7 @@ RUN sed -i "s?dl-cdn.alpinelinux.org?mirrors.aliyun.com?g" /etc/apk/repositories
 ADD . /build/fabric-ca
 WORKDIR /build/fabric-ca
 RUN go env -w GOPROXY=https://goproxy.cn,direct \
+    && go env -w GOPRIVATE=gitee.com/zhaochuninhefei \
 	&& go install -tags "${GO_TAGS}" -ldflags "${GO_LDFLAGS}" \
 	gitee.com/zhaochuninhefei/fabric-ca-gm/cmd/fabric-ca-server \
 	&& go install -tags "${GO_TAGS}" -ldflags "${GO_LDFLAGS}" \

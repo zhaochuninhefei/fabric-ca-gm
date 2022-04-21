@@ -105,7 +105,7 @@ fabric-ca-server: bin/fabric-ca-server
 
 bin/%: $(GO_SOURCE)
 	@echo "Building ${@F} in bin directory ..."
-	@mkdir -p bin && go build -o bin/${@F} -tags "pkcs11" -ldflags "$(GO_LDFLAGS)" $(PKGNAME)/$(path-map.${@F})
+	@mkdir -p bin && go build -o bin/${@F} -tags "!pkcs11" -ldflags "$(GO_LDFLAGS)" $(PKGNAME)/$(path-map.${@F})
 	@echo "Built bin/${@F}"
 
 build/image/fabric-ca/$(DUMMY):
@@ -114,7 +114,7 @@ build/image/fabric-ca/$(DUMMY):
 	@echo "Docker:  building $(TARGET) image"
 	$(DBUILD) -f images/$(TARGET)/Dockerfile \
 		--build-arg GO_VER=${GO_VER} \
-		--build-arg GO_TAGS=pkcs11 \
+		--build-arg GO_TAGS=!pkcs11 \
 		--build-arg GO_LDFLAGS="${DOCKER_GO_LDFLAGS}" \
 		--build-arg ALPINE_VER=${ALPINE_VER} \
 		-t $(DOCKER_NS)/$(TARGET) .
@@ -128,7 +128,7 @@ build/image/fabric-ca-fvt/$(DUMMY):
 	@echo "Docker:  building $(TARGET) image"
 	$(DBUILD) -f images/$(TARGET)/Dockerfile \
 		--build-arg GO_VER=${GO_VER} \
-		--build-arg GO_TAGS=pkcs11 \
+		--build-arg GO_TAGS=!pkcs11 \
 		--build-arg GO_LDFLAGS="${DOCKER_GO_LDFLAGS}" \
 		--build-arg PG_VER=${PG_VER} \
 		-t $(DOCKER_NS)/$(TARGET) .
