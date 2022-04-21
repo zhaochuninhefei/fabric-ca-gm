@@ -7,13 +7,15 @@ package lib
 
 import (
 	"crypto/rand"
-	"crypto/x509"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"testing"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
@@ -278,7 +280,7 @@ func testImpersonation(id *Identity, t *testing.T) {
 		}
 	}()
 
-	privateKey, err := csp.KeyGen(&bccsp.ECDSAKeyGenOpts{Temporary: false})
+	privateKey, err := csp.KeyGen(&bccsp.SM2KeyGenOpts{Temporary: false})
 	if err != nil {
 		t.Fatalf("Failed generating ECDSA key [%s]", err)
 	}

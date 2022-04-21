@@ -8,10 +8,7 @@ package defserver
 
 import (
 	"bytes"
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
@@ -21,6 +18,9 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/cmd/fabric-ca-client/command"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
@@ -448,7 +448,7 @@ func getDefaultServer() (*lib.Server, error) {
 }
 
 func testInsertCertificate(req *certdb.CertificateRecord, id string, srv *lib.Server) error {
-	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	priv, err := sm2.GenerateKey(rand.Reader)
 	if err != nil {
 		return errors.Errorf("Failed to generate private key: %s", err)
 	}

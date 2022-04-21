@@ -7,23 +7,24 @@ SPDX-License-Identifier: Apache-2.0
 package lib
 
 import (
-	// "crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
+	certinfo "gitee.com/zhaochuninhefei/gmgo/x509"
 	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/log"
-	"github.com/grantae/certinfo"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )

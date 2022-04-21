@@ -9,7 +9,8 @@ package idemix
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
@@ -139,7 +140,7 @@ func (cred *Credential) CreateToken(req *http.Request, reqBody []byte) (string, 
 	b64uri := util.B64Encode([]byte(req.URL.RequestURI()))
 	msg := req.Method + "." + b64uri + "." + b64body
 
-	digest, digestError := cred.client.GetCSP().Hash([]byte(msg), &bccsp.SHAOpts{})
+	digest, digestError := cred.client.GetCSP().Hash([]byte(msg), &bccsp.SM3Opts{})
 	if digestError != nil {
 		return "", errors.WithMessage(digestError, fmt.Sprintf("Failed to create token '%s'", msg))
 	}

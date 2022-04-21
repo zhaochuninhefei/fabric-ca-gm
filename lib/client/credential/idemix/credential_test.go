@@ -9,10 +9,11 @@ package idemix_test
 import (
 	"bytes"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 	lib "gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
 	. "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential/idemix"

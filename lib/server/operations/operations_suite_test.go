@@ -9,19 +9,22 @@ package operations_test
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/tls"
-	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+
+	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

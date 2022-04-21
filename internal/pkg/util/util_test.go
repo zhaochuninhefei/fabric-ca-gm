@@ -9,16 +9,18 @@ package util
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"math/big"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	"github.com/spf13/viper"
@@ -81,7 +83,7 @@ func TestECCreateToken(t *testing.T) {
 	// With comptability mode disabled, using old token should fail
 	b64Cert := B64Encode(cert)
 	payload := B64Encode(body) + "." + b64Cert
-	oldToken, err := genECDSAToken(bccsp, privKey, b64Cert, payload)
+	oldToken, err := genSM2Token(bccsp, privKey, b64Cert, payload)
 	FatalError(t, err, "Failed to create token")
 	_, err = VerifyToken(bccsp, oldToken, "GET", "/enroll", body, false)
 	assert.Error(t, err)

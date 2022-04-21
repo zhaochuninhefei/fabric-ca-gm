@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package idemix
 
 import (
-	// "crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"reflect"
@@ -218,7 +217,7 @@ func (i *issuer) VerifyToken(authHdr, method, uri string, body []byte) (string, 
 	b64body := util.B64Encode(body)
 	b64uri := util.B64Encode([]byte(uri))
 	msg := method + "." + b64uri + "." + b64body
-	digest, digestError := i.csp.Hash([]byte(msg), &bccsp.SHAOpts{})
+	digest, digestError := i.csp.Hash([]byte(msg), &bccsp.SM3Opts{})
 	if digestError != nil {
 		return "", errors.WithMessage(digestError, fmt.Sprintf("Failed to create authentication token '%s'", msg))
 	}

@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package util_test
 
 import (
-	// "crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"os"

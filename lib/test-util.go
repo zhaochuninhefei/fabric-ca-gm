@@ -18,11 +18,9 @@ package lib
 
 import (
 	"crypto/rand"
-	// "crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/hex"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -34,6 +32,7 @@ import (
 	"time"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/config"
 )
@@ -190,13 +189,13 @@ func GenerateECDSATestCert() error {
 		return err
 	}
 
-	decoded, _ := pem.Decode(privKey)
-	if decoded == nil {
-		return errors.New("Failed to decode the PEM-encoded ECDSA key")
-	}
-	// TODO 国密改造
+	// decoded, _ := pem.Decode(privKey)
+	// if decoded == nil {
+	// 	return errors.New("Failed to decode the PEM-encoded ECDSA key")
+	// }
+
 	// privateKey, err := x509.ParseECPrivateKey(decoded.Bytes)
-	privateKey, err := x509.ParseSm2PrivateKey(decoded.Bytes)
+	privateKey, err := utils.PEMToSm2PrivateKey(privKey, nil)
 	if err != nil {
 		return err
 	}
@@ -204,8 +203,7 @@ func GenerateECDSATestCert() error {
 	publicKey := &privateKey.PublicKey
 
 	var parent = template
-	// TODO 国密改造 CreateCertificate => CreateCertificateFromReader
-	cert, err := x509.CreateCertificateFromReader(rand.Reader, template, parent, publicKey, privateKey)
+	cert, err := x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey)
 	if err != nil {
 		return err
 	}

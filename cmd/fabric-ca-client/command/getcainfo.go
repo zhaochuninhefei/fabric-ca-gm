@@ -18,7 +18,6 @@ package command
 
 import (
 	"bytes"
-	// "crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"net/url"

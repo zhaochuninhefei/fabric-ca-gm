@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package lib
 
 import (
-	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
@@ -15,10 +14,12 @@ import (
 	"math/big"
 	"time"
 
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
-	"github.com/cloudflare/cfssl/crl"
+	"gitee.com/zhaochuninhefei/fabric-config-gm/cfssl/crl"
 	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )

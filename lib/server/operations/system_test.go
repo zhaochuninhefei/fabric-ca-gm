@@ -10,10 +10,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/operations"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/disabled"

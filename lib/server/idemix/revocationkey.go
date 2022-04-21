@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package idemix
 
 import (
-	// "crypto/ecdsa"
-	// "crypto/x509"
 	"encoding/pem"
 	"io/ioutil"
 
@@ -122,8 +120,7 @@ func (rk *caIdemixRevocationKey) SetNewKey() (err error) {
 
 // EncodeKeys encodes ECDSA key pair to PEM encoding
 func EncodeKeys(privateKey *sm2.PrivateKey, publicKey *sm2.PublicKey) ([]byte, []byte, error) {
-	// encodedPK, err := x509.MarshalECPrivateKey(privateKey)
-	encodedPK, err := x509.MarshalSm2PrivateKey(privateKey, nil)
+	encodedPK, err := x509.MarshalECPrivateKey(privateKey)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Failed to encode ECDSA private key")
 	}
@@ -143,10 +140,13 @@ func DecodeKeys(pemEncodedPK, pemEncodedPubKey []byte) (*sm2.PrivateKey, *sm2.Pu
 	if block == nil {
 		return nil, nil, errors.New("Failed to decode ECDSA private key")
 	}
-	// pk, err := x509.ParseECPrivateKey(block.Bytes)
-	pk, err := x509.ParseSm2PrivateKey(block.Bytes)
+	ecPriv, err := x509.ParseECPrivateKey(block.Bytes)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Failed to parse ECDSA private key bytes")
+	}
+	sm2Priv, ok := ecPriv.(*sm2.PrivateKey)
+	if !ok {
+		return nil, nil, errors.Wrap(err, "pemEncodedPK is not sm2 PrivateKey")
 	}
 	blockPub, _ := pem.Decode(pemEncodedPubKey)
 	if blockPub == nil {
@@ -162,5 +162,5 @@ func DecodeKeys(pemEncodedPK, pemEncodedPubKey []byte) (*sm2.PrivateKey, *sm2.Pu
 	puk.Curve = sm2.P256Sm2()
 	puk.X = publicKey.X
 	puk.Y = publicKey.Y
-	return pk, &puk, nil
+	return sm2Priv, &puk, nil
 }

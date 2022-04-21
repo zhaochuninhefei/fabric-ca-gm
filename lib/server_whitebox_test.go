@@ -8,8 +8,6 @@ package lib
 
 import (
 	"context"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -17,8 +15,10 @@ import (
 	cadb "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/metrics"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/metricsfakes"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+	"gitee.com/zhaochuninhefei/gmgo/gmhttp/httptest"
+	"gitee.com/zhaochuninhefei/gmgo/mux"
 	"github.com/cloudflare/cfssl/log"
-	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"

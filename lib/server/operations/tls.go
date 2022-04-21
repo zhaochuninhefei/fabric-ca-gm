@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package operations
 
 import (
-	// "crypto/tls"
-	// "crypto/x509"
 	"io/ioutil"
 
 	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"

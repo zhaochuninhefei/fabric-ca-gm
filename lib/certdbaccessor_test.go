@@ -7,16 +7,16 @@ SPDX-License-Identifier: Apache-2.0
 package lib
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"math/big"
 	"os"
 	"testing"
 	"time"
+
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/mocks"
@@ -263,7 +263,7 @@ func populateCertificatesTable(t *testing.T, ca *CA) {
 }
 
 func testInsertCertificate(req *certdb.CertificateRecord, id string, ca *CA) error {
-	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	priv, err := sm2.GenerateKey(rand.Reader)
 	if err != nil {
 		return errors.Errorf("Failed to generate private key: %s", err)
 	}

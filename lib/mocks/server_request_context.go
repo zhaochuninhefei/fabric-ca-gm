@@ -2,7 +2,7 @@
 package mocks
 
 import certificaterequest "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/certificaterequest"
-import http "net/http"
+import http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 import mock "github.com/stretchr/testify/mock"
 import sqlx "github.com/jmoiron/sqlx"

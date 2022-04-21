@@ -9,9 +9,11 @@ package lib
 import (
 	"encoding/json"
 	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
 	"testing"
+
+	"gitee.com/zhaochuninhefei/gmgo/gmhttp/httptest"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"github.com/cloudflare/cfssl/api"

@@ -15,6 +15,7 @@ import (
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
+	ldap "gitee.com/zhaochuninhefei/fabric-ca-gm/ldap_v2"
 	causer "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/spi"
 	ctls "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
@@ -23,7 +24,6 @@ import (
 	"github.com/cloudflare/cfssl/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-	ldap "gopkg.in/ldap.v2"
 )
 
 var (

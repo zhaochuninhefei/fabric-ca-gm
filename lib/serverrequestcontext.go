@@ -7,14 +7,16 @@ SPDX-License-Identifier: Apache-2.0
 package lib
 
 import (
-	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"strconv"
 	"strings"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
@@ -25,11 +27,11 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 
+	"gitee.com/zhaochuninhefei/fabric-config-gm/cfssl/revoke"
+	gmux "gitee.com/zhaochuninhefei/gmgo/mux"
 	"github.com/cloudflare/cfssl/config"
 	"github.com/cloudflare/cfssl/log"
-	"github.com/cloudflare/cfssl/revoke"
 	"github.com/cloudflare/cfssl/signer"
-	gmux "github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )

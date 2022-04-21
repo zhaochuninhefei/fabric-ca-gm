@@ -8,7 +8,8 @@ package lib
 
 import (
 	"encoding/json"
-	"net/http"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"github.com/cloudflare/cfssl/api"

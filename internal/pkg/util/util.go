@@ -8,9 +8,6 @@ package util
 
 import (
 	"bytes"
-	"crypto/ecdsa"
-	"crypto/rsa"
-	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
@@ -19,7 +16,6 @@ import (
 	"io/ioutil"
 	"math/big"
 	mrand "math/rand"
-	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -30,10 +26,13 @@ import (
 	"testing"
 	"time"
 
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
+	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
-	gm509 "gitee.com/zhaochuninhefei/gmgo/x509"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -125,6 +124,7 @@ func Unmarshal(from []byte, to interface{}, what string) error {
 }
 
 // CreateToken creates a JWT-like token.
+//  国密改造后只支持sm2公钥证书
 // In a normal JWT token, the format of the token created is:
 //      <algorithm,claims,signature>
 // where each part is base64-encoded string separated by a period.
@@ -150,33 +150,40 @@ func CreateToken(csp bccsp.BCCSP, cert []byte, key bccsp.Key, method, uri string
 
 	//The RSA Key Gen is commented right now as there is bccsp does
 	switch publicKey.(type) {
-	/*
-		case *rsa.PublicKey:
-			token, err = GenRSAToken(csp, cert, key, body)
-			if err != nil {
-				return "", err
-			}
-	*/
-	case *ecdsa.PublicKey:
-		token, err = GenECDSAToken(csp, cert, key, method, uri, body)
+	case *sm2.PublicKey:
+		token, err = GenSM2Token(csp, cert, key, method, uri, body)
 		if err != nil {
 			return "", err
 		}
+		/*
+			case *rsa.PublicKey:
+				token, err = GenRSAToken(csp, cert, key, body)
+				if err != nil {
+					return "", err
+				}
+			case *ecdsa.PublicKey:
+				token, err = GenSM2Token(csp, cert, key, method, uri, body)
+				if err != nil {
+					return "", err
+				}
+		*/
+	default:
+		return "", errors.New("internal/pkg/util/util.go CreateToken: 证书公钥类型不是sm2")
 	}
 	return token, nil
 }
 
-//GenECDSAToken signs the http body and cert with ECDSA using EC private key
-func GenECDSAToken(csp bccsp.BCCSP, cert []byte, key bccsp.Key, method, uri string, body []byte) (string, error) {
+//GenSM2Token signs the http body and cert with SM2 using EC private key
+func GenSM2Token(csp bccsp.BCCSP, cert []byte, key bccsp.Key, method, uri string, body []byte) (string, error) {
 	b64body := B64Encode(body)
 	b64cert := B64Encode(cert)
 	b64uri := B64Encode([]byte(uri))
 	payload := method + "." + b64uri + "." + b64body + "." + b64cert
 
-	return genECDSAToken(csp, key, b64cert, payload)
+	return genSM2Token(csp, key, b64cert, payload)
 }
 
-func genECDSAToken(csp bccsp.BCCSP, key bccsp.Key, b64cert, payload string) (string, error) {
+func genSM2Token(csp bccsp.BCCSP, key bccsp.Key, b64cert, payload string) (string, error) {
 	digest, digestError := csp.Hash([]byte(payload), &bccsp.SM3Opts{})
 	fmt.Printf("digest---,%v", digest)
 	if digestError != nil {
@@ -218,8 +225,8 @@ func VerifyToken(csp bccsp.BCCSP, token string, method, uri string, body []byte,
 	b64uri := B64Encode([]byte(uri))
 	sigString := method + "." + b64uri + "." + b64Body + "." + b64Cert
 	log.Infof("xxx before csp .KeyImport csp : %T b64Body %s", csp, sigString)
-	sm2cert := ParseX509Certificate2Sm2(x509Cert)
-	pk2, err := csp.KeyImport(sm2cert, &bccsp.GMX509PublicKeyImportOpts{Temporary: true})
+	// sm2cert := ParseX509Certificate2Sm2(x509Cert)
+	pk2, err := csp.KeyImport(x509Cert, &bccsp.GMX509PublicKeyImportOpts{Temporary: true})
 	log.Infof("xxx end csp .KeyImport pk2 : %T", pk2)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Public Key import into BCCSP failed with error")
@@ -278,65 +285,71 @@ func decodeToken(token string) (*x509.Certificate, string, string, error) {
 	return x509Cert, b64cert, parts[1], nil
 }
 
-//GetECPrivateKey get *ecdsa.PrivateKey from key pem
-func GetECPrivateKey(raw []byte) (*ecdsa.PrivateKey, error) {
-	decoded, _ := pem.Decode(raw)
-	if decoded == nil {
-		return nil, errors.New("Failed to decode the PEM-encoded ECDSA key")
+//GetECPrivateKey get *sm2.PrivateKey from key pem
+// 国密对应后只支持sm2私钥
+func GetECPrivateKey(raw []byte) (*sm2.PrivateKey, error) {
+	// decoded, _ := pem.Decode(raw)
+	// if decoded == nil {
+	// 	return nil, errors.New("Failed to decode the PEM-encoded ECDSA key")
+	// }
+	// ECprivKey, err := x509.ParseECPrivateKey(decoded.Bytes)
+	ECprivKey, err := utils.PEMToSm2PrivateKey(raw, nil)
+	if err != nil {
+		return nil, err
 	}
-	ECprivKey, err := x509.ParseECPrivateKey(decoded.Bytes)
-	if err == nil {
-		return ECprivKey, nil
-	}
-	key, err2 := x509.ParsePKCS8PrivateKey(decoded.Bytes)
-	if err2 == nil {
-		switch key := key.(type) {
-		case *ecdsa.PrivateKey:
-			return key, nil
-		case *rsa.PrivateKey:
-			return nil, errors.New("Expecting EC private key but found RSA private key")
-		default:
-			return nil, errors.New("Invalid private key type in PKCS#8 wrapping")
-		}
-	}
-	return nil, errors.Wrap(err2, "Failed parsing EC private key")
+	return ECprivKey, err
+	// key, err2 := x509.ParsePKCS8PrivateKey(decoded.Bytes)
+	// if err2 == nil {
+	// 	switch key := key.(type) {
+	// 	case *ecdsa.PrivateKey:
+	// 		return key, nil
+	// 	case *rsa.PrivateKey:
+	// 		return nil, errors.New("Expecting EC private key but found RSA private key")
+	// 	default:
+	// 		return nil, errors.New("Invalid private key type in PKCS#8 wrapping")
+	// 	}
+	// }
+	// return nil, errors.Wrap(err2, "Failed parsing EC private key")
 }
 
+// 国密改造后只支持sm2
 //GetRSAPrivateKey get *rsa.PrivateKey from key pem
-func GetRSAPrivateKey(raw []byte) (*rsa.PrivateKey, error) {
-	decoded, _ := pem.Decode(raw)
-	if decoded == nil {
-		return nil, errors.New("Failed to decode the PEM-encoded RSA key")
-	}
-	RSAprivKey, err := x509.ParsePKCS1PrivateKey(decoded.Bytes)
-	if err == nil {
-		return RSAprivKey, nil
-	}
-	key, err2 := x509.ParsePKCS8PrivateKey(decoded.Bytes)
-	if err2 == nil {
-		switch key := key.(type) {
-		case *ecdsa.PrivateKey:
-			return nil, errors.New("Expecting RSA private key but found EC private key")
-		case *rsa.PrivateKey:
-			return key, nil
-		default:
-			return nil, errors.New("Invalid private key type in PKCS#8 wrapping")
-		}
-	}
-	return nil, errors.Wrap(err, "Failed parsing RSA private key")
-}
+// func GetRSAPrivateKey(raw []byte) (*rsa.PrivateKey, error) {
+// 	decoded, _ := pem.Decode(raw)
+// 	if decoded == nil {
+// 		return nil, errors.New("Failed to decode the PEM-encoded RSA key")
+// 	}
+// 	RSAprivKey, err := x509.ParsePKCS1PrivateKey(decoded.Bytes)
+// 	if err == nil {
+// 		return RSAprivKey, nil
+// 	}
+// 	key, err2 := x509.ParsePKCS8PrivateKey(decoded.Bytes)
+// 	if err2 == nil {
+// 		switch key := key.(type) {
+// 		// 添加了sm2分支判断
+// 		case *sm2.PrivateKey, *ecdsa.PrivateKey:
+// 			return nil, errors.New("Expecting RSA private key but found EC private key")
+// 		case *rsa.PrivateKey:
+// 			return key, nil
+// 		default:
+// 			return nil, errors.New("Invalid private key type in PKCS#8 wrapping")
+// 		}
+// 	}
+// 	return nil, errors.Wrap(err, "Failed parsing RSA private key")
+// }
 
-//GetSM2PrivateKey get *sm2.PrivateKey from key pem
+// GetSM2PrivateKey get *sm2.PrivateKey from key pem
 func GetSM2PrivateKey(raw []byte) (*sm2.PrivateKey, error) {
-	decoded, _ := pem.Decode(raw)
-	if decoded == nil {
-		return nil, errors.New("Failed to decode the PEM-encoded RSA key")
-	}
-	if key, err := gm509.ParsePKCS8UnecryptedPrivateKey(decoded.Bytes); err == nil {
-		return key, nil
-	} else {
-		return nil, fmt.Errorf("tls: failed to parse private key %v", err)
-	}
+	// decoded, _ := pem.Decode(raw)
+	// if decoded == nil {
+	// 	return nil, errors.New("Failed to decode the PEM-encoded RSA key")
+	// }
+	// if key, err := x509.ParsePKCS8UnecryptedPrivateKey(decoded.Bytes); err == nil {
+	// 	return key, nil
+	// } else {
+	// 	return nil, fmt.Errorf("tls: failed to parse private key %v", err)
+	// }
+	return utils.PEMToSm2PrivateKey(raw, nil)
 }
 
 // B64Encode base64 encodes bytes
@@ -415,38 +428,40 @@ func GetDefaultConfigFile(cmdName string) string {
 
 // GetX509CertificateFromPEMFile gets an X509 certificate from a file
 func GetX509CertificateFromPEMFile(file string) (*x509.Certificate, error) {
-	pemBytes, err := ReadFile(file)
-	if err != nil {
-		return nil, err
-	}
-	x509Cert, err := GetX509CertificateFromPEM(pemBytes)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Invalid certificate in '%s'", file)
-	}
-	return x509Cert, nil
+	return x509.ReadCertificateFromPemFile(file)
+	// pemBytes, err := ReadFile(file)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// x509Cert, err := GetX509CertificateFromPEM(pemBytes)
+	// if err != nil {
+	// 	return nil, errors.Wrapf(err, "Invalid certificate in '%s'", file)
+	// }
+	// return x509Cert, nil
 }
 
 // GetX509CertificateFromPEM get an X509 certificate from bytes in PEM format
 func GetX509CertificateFromPEM(cert []byte) (*x509.Certificate, error) {
-	block, _ := pem.Decode(cert)
-	if block == nil {
-		return nil, errors.New("Failed to PEM decode certificate")
-	}
-	var x509Cert *x509.Certificate
-	var err error
-	if IsGMConfig() {
-		log.Debugf("cpcpcpcpcpcpcpcpcpcpcpcpcpcpcppcpc")
-		sm2x509Cert, err := gm509.ParseCertificate(block.Bytes)
-		if err == nil {
-			x509Cert = ParseSm2Certificate2X509(sm2x509Cert)
-		}
-	} else {
-		x509Cert, err = x509.ParseCertificate(block.Bytes)
-	}
-	if err != nil {
-		return nil, errors.Wrap(err, "Error parsing certificate")
-	}
-	return x509Cert, nil
+	return x509.ReadCertificateFromPem(cert)
+	// block, _ := pem.Decode(cert)
+	// if block == nil {
+	// 	return nil, errors.New("Failed to PEM decode certificate")
+	// }
+	// var x509Cert *x509.Certificate
+	// var err error
+	// if IsGMConfig() {
+	// 	// log.Debugf("cpcpcpcpcpcpcpcpcpcpcpcpcpcpcppcpc")
+	// 	sm2x509Cert, err := x509.ParseCertificate(block.Bytes)
+	// 	if err == nil {
+	// 		x509Cert = ParseSm2Certificate2X509(sm2x509Cert)
+	// 	}
+	// } else {
+	// 	x509Cert, err = x509.ParseCertificate(block.Bytes)
+	// }
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "Error parsing certificate")
+	// }
+	// return x509Cert, nil
 }
 
 // GetX509CertificatesFromPEM returns X509 certificates from bytes in PEM format
@@ -459,16 +474,17 @@ func GetX509CertificatesFromPEM(pemBytes []byte) ([]*x509.Certificate, error) {
 		if block == nil {
 			break
 		}
-		var x509Cert *x509.Certificate
-		var err error
-		if IsGMConfig() {
-			sm2x509Cert, err := gm509.ParseCertificate(block.Bytes)
-			if err == nil {
-				x509Cert = ParseSm2Certificate2X509(sm2x509Cert)
-			}
-		} else {
-			x509Cert, err = x509.ParseCertificate(block.Bytes)
-		}
+		// var x509Cert *x509.Certificate
+		// var err error
+		// if IsGMConfig() {
+		// 	sm2x509Cert, err := x509.ParseCertificate(block.Bytes)
+		// 	if err == nil {
+		// 		x509Cert = ParseSm2Certificate2X509(sm2x509Cert)
+		// 	}
+		// } else {
+		// 	x509Cert, err = x509.ParseCertificate(block.Bytes)
+		// }
+		x509Cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			return nil, errors.Wrap(err, "Error parsing certificate")
 		}
@@ -503,6 +519,9 @@ func GetEnrollmentIDFromPEM(cert []byte) (string, error) {
 
 // GetEnrollmentIDFromX509Certificate returns the EnrollmentID from the X509 certificate
 func GetEnrollmentIDFromX509Certificate(cert *x509.Certificate) string {
+	// cert.Subject.CommonName 是 EnrollmentID
+	// 可见fabric-ca的证书格式依然是采用x509的CN,而不是SAN扩展信息。
+	// 但go1.15之后,x509证书使用SAN代替CN,因此在生成fabric-ca的证书时要注意,CN和SAN都要设置。
 	return cert.Subject.CommonName
 }
 
@@ -774,7 +793,7 @@ func GetSliceFromList(split string, delim string) []string {
 }
 
 //sm2 证书转换 x509 证书
-func ParseSm2Certificate2X509(sm2Cert *gm509.Certificate) *x509.Certificate {
+func ParseSm2Certificate2X509(sm2Cert *x509.Certificate) *x509.Certificate {
 	x509cert := &x509.Certificate{
 		Raw:                     sm2Cert.Raw,
 		RawTBSCertificate:       sm2Cert.RawTBSCertificate,
@@ -842,85 +861,87 @@ func ParseSm2Certificate2X509(sm2Cert *gm509.Certificate) *x509.Certificate {
 	return x509cert
 }
 
-// X509证书格式转换为 SM2证书格式
-func ParseX509Certificate2Sm2(x509Cert *x509.Certificate) *gm509.Certificate {
-	sm2cert := &gm509.Certificate{
-		Raw:                     x509Cert.Raw,
-		RawTBSCertificate:       x509Cert.RawTBSCertificate,
-		RawSubjectPublicKeyInfo: x509Cert.RawSubjectPublicKeyInfo,
-		RawSubject:              x509Cert.RawSubject,
-		RawIssuer:               x509Cert.RawIssuer,
+// // X509证书格式转换为 SM2证书格式
+// func ParseX509Certificate2Sm2(x509Cert *x509.Certificate) *gm509.Certificate {
+// 	sm2cert := &gm509.Certificate{
+// 		Raw:                     x509Cert.Raw,
+// 		RawTBSCertificate:       x509Cert.RawTBSCertificate,
+// 		RawSubjectPublicKeyInfo: x509Cert.RawSubjectPublicKeyInfo,
+// 		RawSubject:              x509Cert.RawSubject,
+// 		RawIssuer:               x509Cert.RawIssuer,
 
-		Signature:          x509Cert.Signature,
-		SignatureAlgorithm: gm509.SignatureAlgorithm(x509Cert.SignatureAlgorithm),
+// 		Signature:          x509Cert.Signature,
+// 		SignatureAlgorithm: gm509.SignatureAlgorithm(x509Cert.SignatureAlgorithm),
 
-		PublicKeyAlgorithm: gm509.PublicKeyAlgorithm(x509Cert.PublicKeyAlgorithm),
-		PublicKey:          x509Cert.PublicKey,
+// 		PublicKeyAlgorithm: gm509.PublicKeyAlgorithm(x509Cert.PublicKeyAlgorithm),
+// 		PublicKey:          x509Cert.PublicKey,
 
-		Version:      x509Cert.Version,
-		SerialNumber: x509Cert.SerialNumber,
-		Issuer:       x509Cert.Issuer,
-		Subject:      x509Cert.Subject,
-		NotBefore:    x509Cert.NotBefore,
-		NotAfter:     x509Cert.NotAfter,
-		KeyUsage:     gm509.KeyUsage(x509Cert.KeyUsage),
+// 		Version:      x509Cert.Version,
+// 		SerialNumber: x509Cert.SerialNumber,
+// 		Issuer:       x509Cert.Issuer,
+// 		Subject:      x509Cert.Subject,
+// 		NotBefore:    x509Cert.NotBefore,
+// 		NotAfter:     x509Cert.NotAfter,
+// 		KeyUsage:     gm509.KeyUsage(x509Cert.KeyUsage),
 
-		Extensions: x509Cert.Extensions,
+// 		Extensions: x509Cert.Extensions,
 
-		ExtraExtensions: x509Cert.ExtraExtensions,
+// 		ExtraExtensions: x509Cert.ExtraExtensions,
 
-		UnhandledCriticalExtensions: x509Cert.UnhandledCriticalExtensions,
+// 		UnhandledCriticalExtensions: x509Cert.UnhandledCriticalExtensions,
 
-		//ExtKeyUsage:	[]x509.ExtKeyUsage(x509Cert.ExtKeyUsage) ,
-		UnknownExtKeyUsage: x509Cert.UnknownExtKeyUsage,
+// 		//ExtKeyUsage:	[]x509.ExtKeyUsage(x509Cert.ExtKeyUsage) ,
+// 		UnknownExtKeyUsage: x509Cert.UnknownExtKeyUsage,
 
-		BasicConstraintsValid: x509Cert.BasicConstraintsValid,
-		IsCA:                  x509Cert.IsCA,
-		MaxPathLen:            x509Cert.MaxPathLen,
-		// MaxPathLenZero indicates that BasicConstraintsValid==true and
-		// MaxPathLen==0 should be interpreted as an actual maximum path length
-		// of zero. Otherwise, that combination is interpreted as MaxPathLen
-		// not being set.
-		MaxPathLenZero: x509Cert.MaxPathLenZero,
+// 		BasicConstraintsValid: x509Cert.BasicConstraintsValid,
+// 		IsCA:                  x509Cert.IsCA,
+// 		MaxPathLen:            x509Cert.MaxPathLen,
+// 		// MaxPathLenZero indicates that BasicConstraintsValid==true and
+// 		// MaxPathLen==0 should be interpreted as an actual maximum path length
+// 		// of zero. Otherwise, that combination is interpreted as MaxPathLen
+// 		// not being set.
+// 		MaxPathLenZero: x509Cert.MaxPathLenZero,
 
-		SubjectKeyId:   x509Cert.SubjectKeyId,
-		AuthorityKeyId: x509Cert.AuthorityKeyId,
+// 		SubjectKeyId:   x509Cert.SubjectKeyId,
+// 		AuthorityKeyId: x509Cert.AuthorityKeyId,
 
-		// RFC 5280, 4.2.2.1 (Authority Information Access)
-		OCSPServer:            x509Cert.OCSPServer,
-		IssuingCertificateURL: x509Cert.IssuingCertificateURL,
+// 		// RFC 5280, 4.2.2.1 (Authority Information Access)
+// 		OCSPServer:            x509Cert.OCSPServer,
+// 		IssuingCertificateURL: x509Cert.IssuingCertificateURL,
 
-		// Subject Alternate Name values
-		DNSNames:       x509Cert.DNSNames,
-		EmailAddresses: x509Cert.EmailAddresses,
-		IPAddresses:    x509Cert.IPAddresses,
+// 		// Subject Alternate Name values
+// 		DNSNames:       x509Cert.DNSNames,
+// 		EmailAddresses: x509Cert.EmailAddresses,
+// 		IPAddresses:    x509Cert.IPAddresses,
 
-		// Name constraints
-		PermittedDNSDomainsCritical: x509Cert.PermittedDNSDomainsCritical,
-		PermittedDNSDomains:         x509Cert.PermittedDNSDomains,
+// 		// Name constraints
+// 		PermittedDNSDomainsCritical: x509Cert.PermittedDNSDomainsCritical,
+// 		PermittedDNSDomains:         x509Cert.PermittedDNSDomains,
 
-		// CRL Distribution Points
-		CRLDistributionPoints: x509Cert.CRLDistributionPoints,
+// 		// CRL Distribution Points
+// 		CRLDistributionPoints: x509Cert.CRLDistributionPoints,
 
-		PolicyIdentifiers: x509Cert.PolicyIdentifiers,
-	}
-	for _, val := range x509Cert.ExtKeyUsage {
-		sm2cert.ExtKeyUsage = append(sm2cert.ExtKeyUsage, gm509.ExtKeyUsage(val))
-	}
+// 		PolicyIdentifiers: x509Cert.PolicyIdentifiers,
+// 	}
+// 	for _, val := range x509Cert.ExtKeyUsage {
+// 		sm2cert.ExtKeyUsage = append(sm2cert.ExtKeyUsage, gm509.ExtKeyUsage(val))
+// 	}
 
-	return sm2cert
-}
+// 	return sm2cert
+// }
 
 var providerName string
 
 func IsGMConfig() bool {
-	if providerName == "" {
-		return false
-	}
-	if strings.ToUpper(providerName) == "GM" {
-		return true
-	}
-	return false
+	// TODO: 国密改造后暂时固定支持国密
+	return true
+	// if providerName == "" {
+	// 	return false
+	// }
+	// if strings.ToUpper(providerName) == "GM" {
+	// 	return true
+	// }
+	// return false
 }
 
 func SetProviderName(name string) {

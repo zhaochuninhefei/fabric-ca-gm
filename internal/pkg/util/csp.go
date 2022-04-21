@@ -8,8 +8,6 @@ package util
 
 import (
 	"crypto"
-	// "crypto/tls"
-	// "crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
@@ -20,7 +18,6 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	cspsigner "gitee.com/zhaochuninhefei/fabric-gm/bccsp/signer"
-	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/sw"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
 
 	gtls "gitee.com/zhaochuninhefei/gmgo/gmtls"
@@ -101,7 +98,7 @@ func BccspBackedSigner(caFile, keyFile string, policy *config.Signing, csp bccsp
 	}
 	// TODO: 这里使用`github.com/cloudflare/cfssl@v1.6.1`的`signer/local/local.go`的函数与类型可能有问题，
 	// 因为它们不支持 sm2相关算法
-	signer, err := local.NewSigner(cspSigner, sw.ParseSm2Certificate2X509(parsedCa), signer.DefaultSigAlgo(cspSigner), policy)
+	signer, err := local.NewSigner(cspSigner, parsedCa.ToX509Certificate(), signer.DefaultSigAlgo(cspSigner), policy)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create new signer")
 	}

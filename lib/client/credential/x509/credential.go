@@ -9,7 +9,8 @@ package x509
 import (
 	"encoding/hex"
 	"fmt"
-	"net/http"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"

@@ -4,7 +4,7 @@ package mocks
 import (
 	sync "sync"
 
-	healthz "github.com/hyperledger/fabric-lib-go/healthz"
+	healthz "gitee.com/zhaochuninhefei/fabric-config-gm/healthz"
 	metrics "gitee.com/zhaochuninhefei/fabric-gm/common/metrics"
 )
 

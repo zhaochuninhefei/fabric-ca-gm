@@ -8,8 +8,7 @@ SPDX-License-Identifier: Apache-2.0
 package mocks
 
 import (
-	// ecdsa "crypto/ecdsa"
-	ecdsa "gitee.com/zhaochuninhefei/gmgo/sm2"
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	FP256BN "github.com/hyperledger/fabric-amcl/amcl/FP256BN"
 
 	idemix "gitee.com/zhaochuninhefei/fabric-gm/idemix"
@@ -90,15 +89,15 @@ func (_m *RevocationAuthority) GetNewRevocationHandle() (*FP256BN.BIG, error) {
 }
 
 // PublicKey provides a mock function with given fields:
-func (_m *RevocationAuthority) PublicKey() *ecdsa.PublicKey {
+func (_m *RevocationAuthority) PublicKey() *sm2.PublicKey {
 	ret := _m.Called()
 
-	var r0 *ecdsa.PublicKey
-	if rf, ok := ret.Get(0).(func() *ecdsa.PublicKey); ok {
+	var r0 *sm2.PublicKey
+	if rf, ok := ret.Get(0).(func() *sm2.PublicKey); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*ecdsa.PublicKey)
+			r0 = ret.Get(0).(*sm2.PublicKey)
 		}
 	}
 

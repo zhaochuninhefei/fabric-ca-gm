@@ -10,12 +10,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"os"
 	"testing"
 
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
-	"github.com/hyperledger/fabric-lib-go/healthz"
+	"gitee.com/zhaochuninhefei/fabric-config-gm/healthz"
 
 	"github.com/stretchr/testify/assert"
 )

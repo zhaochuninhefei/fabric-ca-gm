@@ -8,13 +8,15 @@ package x509_test
 
 import (
 	"bytes"
-	"crypto/x509"
 	"encoding/hex"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"

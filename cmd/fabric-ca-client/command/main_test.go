@@ -9,7 +9,6 @@ package command
 import (
 	"bufio"
 	"bytes"
-	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
@@ -26,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
@@ -35,7 +36,6 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/sqlite"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/sw"
 	"github.com/cloudflare/cfssl/csr"
 	"github.com/cloudflare/cfssl/log"
 	"github.com/stretchr/testify/assert"
@@ -907,9 +907,9 @@ func checkAttrsInCert(t *testing.T, home, name, val, missing string) {
 		t.Fatalf("Failed to load test user's cert: %s", err)
 	}
 
-	sm2Cert := sw.ParseX509Certificate2Sm2(cert)
+	// sm2Cert := sw.ParseX509Certificate2Sm2(cert)
 	// Get the attributes from the cert
-	attrs, err := attrmgr.New().GetAttributesFromCert(sm2Cert)
+	attrs, err := attrmgr.New().GetAttributesFromCert(cert)
 	if err != nil {
 		t.Fatalf("Failed to get attributes from certificate: %s", err)
 	}

@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package idemix_test
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
 	"io/ioutil"
@@ -24,6 +22,7 @@ import (
 	dmocks "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix/mocks"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	"github.com/kisielk/sqlstruct"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -322,7 +321,7 @@ func TestVerifyTokenBadSignature(t *testing.T) {
 	_, err = issuer.VerifyToken("idemix.1.admin."+sig, "", "", []byte{})
 	assert.Error(t, err, "VerifyToken should fail if the signature is not valid")
 
-	digest, err := util.GetDefaultBCCSP().Hash([]byte(sig), &bccsp.SHAOpts{})
+	digest, err := util.GetDefaultBCCSP().Hash([]byte(sig), &bccsp.SM3Opts{})
 	if err != nil {
 		t.Fatalf("Failed to get hash of the message: %s", err.Error())
 	}
@@ -411,7 +410,7 @@ func getIssuer(t *testing.T, testDir string, getranderror, newIssuerKeyerror boo
 		lib.On("NewIssuerKey", GetAttributeNames(), rnd).Return(ik, nil)
 	}
 
-	key, err := ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	key, err := sm2.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatalf("Failed to generate key: %s", err.Error())
 	}

@@ -14,13 +14,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
@@ -158,12 +159,10 @@ func (c *Client) initHTTPClient() error {
 
 		tlsConfig, err2 := tls.GetClientTLSConfig(&c.Config.TLS, c.csp)
 		if err2 != nil {
-			return fmt.Errorf("Failed to get client TLS config: %s", err2)
+			return errors.Errorf("Failed to get client TLS config: %s", err2)
 		}
 		// set the default ciphers
 		tlsConfig.CipherSuites = tls.DefaultCipherSuites
-		// TODO tr是go内建的`http.Transport`类型，无法支持gmgo的tls，
-		// 因此"lib/tls/tls.go"中的"crypto/tls"依赖不能改为"gitee.com/zhaochuninhefei/gmgo/gmtls"
 		tr.TLSClientConfig = tlsConfig
 	}
 	c.httpClient = &http.Client{Transport: tr}

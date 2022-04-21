@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -16,6 +15,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"testing"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"

@@ -26,7 +26,7 @@ func GetKeyRequest(cfg *CAConfig) *api.KeyRequest {
 // TODO 添加GetKeyRequest的国密版本
 func GetGMKeyRequest(cfg *CAConfig) *api.KeyRequest {
 	if cfg.CSP.SwOpts != nil {
-		return &api.KeyRequest{Algo: bccsp.GMSM2, Size: cfg.CSP.SwOpts.SecLevel}
+		return &api.KeyRequest{Algo: bccsp.SM2, Size: cfg.CSP.SwOpts.SecLevel}
 	}
 	return api.NewGMKeyRequest()
 }

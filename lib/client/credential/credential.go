@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package credential
 
 import (
-	"net/http"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 )

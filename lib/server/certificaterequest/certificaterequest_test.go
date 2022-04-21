@@ -8,7 +8,6 @@ package certificaterequest
 
 import (
 	//	"bytes"
-	//	"net/http"
 	"errors"
 	"testing"
 	"time"

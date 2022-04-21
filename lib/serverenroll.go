@@ -7,10 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package lib
 
 import (
-	"crypto/x509"
 	"encoding/asn1"
 	"encoding/pem"
 	"time"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"

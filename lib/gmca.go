@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/hex"
@@ -9,6 +8,8 @@ import (
 	"net"
 	"net/mail"
 	"time"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"crypto"
 	"crypto/rand"
@@ -71,7 +72,7 @@ func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 		return nil, err
 	}
 	log.Infof("^^^^^^^^^^^^^^^^^^^^^^^template = %v\n cert = %v\n Type = %T", template, cert, template.PublicKey)
-	clientCert, err := gx509.ReadCertificateFromMem(cert)
+	clientCert, err := gx509.ReadCertificateFromPem(cert)
 	log.Infof("template.SerialNumber---,%v", template.SerialNumber)
 	log.Infof("clientCert--,%v", clientCert)
 	log.Infof("cert--,%v", cert)

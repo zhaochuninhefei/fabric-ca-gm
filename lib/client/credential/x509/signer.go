@@ -7,13 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package x509
 
 import (
-	"crypto/x509"
-	"fmt"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attrmgr"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
-	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/sw"
 	"github.com/pkg/errors"
 )
 
@@ -71,10 +69,10 @@ func (s *Signer) GetName() string {
 func (s *Signer) Attributes() (*attrmgr.Attributes, error) {
 	cert := s.GetX509Cert()
 	// TODO 将x509证书转为sm2证书
-	sm2Cert := sw.ParseX509Certificate2Sm2(cert)
-	attrs, err := attrmgr.New().GetAttributesFromCert(sm2Cert)
+	// sm2Cert := sw.ParseX509Certificate2Sm2(cert)
+	attrs, err := attrmgr.New().GetAttributesFromCert(cert)
 	if err != nil {
-		return nil, fmt.Errorf("Failed getting attributes for '%s': %s", s.name, err)
+		return nil, errors.Errorf("Failed getting attributes for '%s': %s", s.name, err)
 	}
 	return attrs, nil
 }

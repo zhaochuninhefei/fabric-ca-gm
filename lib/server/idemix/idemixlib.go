@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package idemix
 
 import (
-	// "crypto/ecdsa"
-
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
 	ecdsa "gitee.com/zhaochuninhefei/gmgo/sm2"
 	"github.com/hyperledger/fabric-amcl/amcl"

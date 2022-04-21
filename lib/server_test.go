@@ -8,14 +8,11 @@ package lib_test
 
 import (
 	"bytes"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"math/rand"
 	"net"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -24,6 +21,12 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+
+	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
+
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"

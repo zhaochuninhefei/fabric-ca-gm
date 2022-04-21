@@ -9,8 +9,9 @@ package lib
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strconv"
+
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"

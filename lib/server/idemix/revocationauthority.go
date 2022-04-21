@@ -8,7 +8,6 @@ package idemix
 
 import (
 	"bytes"
-	// "crypto/ecdsa"
 	"fmt"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
