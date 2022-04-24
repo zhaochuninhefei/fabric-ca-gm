@@ -175,8 +175,8 @@ func GenerateECDSATestCert() error {
 		SubjectKeyId:          []byte{1, 2, 3},
 		SerialNumber:          big.NewInt(1234),
 		Subject: pkix.Name{
-			Country:      []string{"US"},
-			Organization: []string{"IBM"},
+			Country:      []string{"CN"},
+			Organization: []string{"gcsoft"},
 		},
 		NotBefore:   time.Now(),
 		NotAfter:    time.Now().AddDate(15, 0, 0),

@@ -49,27 +49,27 @@ EeExpiry="$two_year"
 
 # RootCa variables
 RootCa='FabricTlsRootCa'
-RootSubject="/C=US/ST=North Carolina/L=RTP/O=Hyperledger/OU=fabric-ca/CN=$RootCa/"
+RootSubject="/C=CN/ST=Anhui/L=Hefei/O=gcsoft/OU=gcbaas-ca/CN=$RootCa/"
 RootEmail="$RootCa@localhost"
 
 # SubCa variables
 SubCa='FabricTlsSubCa'
-SubSubject="/C=US/ST=North Carolina/L=RTP/O=Hyperledger/OU=fabric-ca/CN=$SubCa/"
+SubSubject="/C=CN/ST=Anhui/L=Hefei/O=gcsoft/OU=gcbaas-ca/CN=$SubCa/"
 SubEmail="$SubCa@localhost"
 
 # TlsRa variables
 TlsRa='FabricTlsRa'
-TlsRaSubject="/C=US/ST=North Carolina/L=RTP/O=Hyperledger/OU=fabric-ca/CN=$TlsRa/"
+TlsRaSubject="/C=CN/ST=Anhui/L=Hefei/O=gcsoft/OU=gcbaas-ca/CN=$TlsRa/"
 TlsRaEmail="$TlsRa@localhost"
 
 # TlsServerEE variables
 TlsServerEE='FabricTlsServerEE'
-TlsServerSubject="/C=US/ST=North Carolina/L=RTP/O=Hyperledger/OU=fabric-ca/CN=$TlsServerEE/"
+TlsServerSubject="/C=CN/ST=Anhui/L=Hefei/O=gcsoft/OU=gcbaas-ca/CN=$TlsServerEE/"
 TlsServerEmail="$TlsServerEE@localhost"
 
 # TlsClientEE variables
 TlsClientEE='FabricTlsClientEE'
-TlsClientSubject="/C=US/ST=North Carolina/L=RTP/O=Hyperledger/OU=fabric-ca/CN=$TlsClientEE/"
+TlsClientSubject="/C=CN/ST=Anhui/L=Hefei/O=gcsoft/OU=gcbaas-ca/CN=$TlsClientEE/"
 TlsClientEmail="$TlsClientEE@localhost"
 
 cd $HOME

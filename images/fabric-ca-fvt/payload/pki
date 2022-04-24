@@ -585,7 +585,7 @@ while getopts "?hxf:n:d:l:s:e:a:c:k:t:p:b:K:E:C:m:r:R:o:S:X:" option
 shift $(($OPTIND-1))
 
 : ${function:="newcert"}
-: ${subjectname:="/C=US/ST=NC/L=NC/O=IBM/O=FVT/CN=MVS TEST CERT"}
+: ${subjectname:="/C=CN/ST=Anhui/L=Hefei/O=gcsoft/O=gcbaas/CN=MVS TEST CERT"}
 : ${digest:="sha1"}
 : ${crlexpiration:="7300"}
 : ${expiration:="7300"}

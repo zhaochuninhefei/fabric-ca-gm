@@ -514,11 +514,11 @@ cat > $runconfig <<EOF
       "cn": "fabric-ca-server",
       "names": [
          {
-            "C": "US",
-            "ST": "North Carolina",
-            "L": null,
-            "O": "Hyperledger",
-            "OU": "Fabric"
+            "C": "CN",
+            "ST": "Anhui",
+            "L": "Hefei",
+            "O": "gcsoft",
+            "OU": "gcbaas"
          }
       ],
       "hosts": [
@@ -704,11 +704,11 @@ signing:
          notbefore: 2016-12-30T00:00:00Z
 csr:
   names:
-    - C: US
-      ST: "North Carolina"
-      L:
-      O: Hyperledger
-      OU: Fabric
+    - C: CN
+      ST: "Anhui"
+      L: "Hefei"
+      O: gcsoft
+      OU: gcbaas
   hosts:
     - fabricCa.hyperledger.example.com
     - localhost

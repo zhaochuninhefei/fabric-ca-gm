@@ -342,11 +342,11 @@ csr:
      algo: SM2
      size: 256
    names:
-      - C: US
-        ST: "North Carolina"
-        L:
-        O: Hyperledger
-        OU: Fabric
+      - C: CN
+        ST: "Anhui"
+        L: "Hefei"
+        O: gcsoft
+        OU: gcbaas
    hosts:
      - <<<MYHOST>>>
      - localhost

@@ -699,7 +699,7 @@ func testEnrollMiscFailures(c *Client, t *testing.T) {
 	var n csr.Name
 	k.Algo = "dsa"
 	k.Size = 256
-	n.C = "US"
+	n.C = "CN"
 
 	r.KeyRequest = &k
 	r.Names = []csr.Name{n}

@@ -63,8 +63,8 @@ func genRoot(name, dir string) ([]byte, *rsa.PrivateKey, error) {
 		SubjectKeyId:          []byte{1, 2, 3},
 		SerialNumber:          big.NewInt(1234),
 		Subject: pkix.Name{
-			Country:      []string{"US"},
-			Organization: []string{"ORG"},
+			Country:      []string{"CN"},
+			Organization: []string{"gcsoft"},
 			CommonName:   "localhost",
 		},
 		NotBefore:   time.Now(),
@@ -110,7 +110,7 @@ func genCert(name, dir string, cert []byte, privKey *rsa.PrivateKey) error {
 		SubjectKeyId:          []byte{1, 2, 3},
 		SerialNumber:          big.NewInt(1234),
 		Subject: pkix.Name{
-			Country:    []string{"US"},
+			Country:    []string{"CN"},
 			CommonName: "localhost",
 		},
 		NotBefore:   time.Now(),

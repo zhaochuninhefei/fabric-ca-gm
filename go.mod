@@ -5,7 +5,7 @@ go 1.17
 require (
 	gitee.com/zhaochuninhefei/fabric-config-gm v0.0.4
 	gitee.com/zhaochuninhefei/fabric-gm v0.0.4
-	gitee.com/zhaochuninhefei/gmgo v0.0.8
+	gitee.com/zhaochuninhefei/gmgo v0.0.9
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/cloudflare/cfssl v1.6.1
 	github.com/go-kit/kit v0.10.0
@@ -32,6 +32,7 @@ require (
 require (
 	bitbucket.org/creachadair/shell v0.0.6 // indirect
 	cloud.google.com/go v0.99.0 // indirect
+	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
@@ -63,12 +64,13 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
-	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jhump/protoreflect v1.9.0 // indirect
 	github.com/jmhodges/clock v0.0.0-20160418191101-880ee4c33548 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
@@ -76,21 +78,19 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
 	github.com/prometheus/common v0.34.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
+	github.com/rogpeppe/go-internal v1.6.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
-	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
-	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/sykesm/zap-logfmt v0.0.4 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802 // indirect
 	github.com/urfave/cli v1.22.5 // indirect
@@ -136,7 +136,6 @@ require (
 	google.golang.org/grpc v1.44.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
-	gopkg.in/ini.v1 v1.66.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
@@ -144,8 +143,11 @@ require (
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
 
+replace (
+	github.com/go-kit/kit => github.com/go-kit/kit v0.7.0
+	github.com/spf13/viper => github.com/spf13/viper v0.0.0-20150908122457-1967d93db724
 // gitee.com/zhaochuninhefei/fabric-config-gm => /home/zhaochun/work/sources/gcbaas/fabric-config-gm
 // gitee.com/zhaochuninhefei/fabric-gm => /home/zhaochun/work/sources/gcbaas/fabric-gm
 // gitee.com/zhaochuninhefei/fabric-protos-go-gm => /home/zhaochun/work/sources/gcbaas/fabric-protos-go-gm
 // gitee.com/zhaochuninhefei/gmgo => /home/zhaochun/work/sources/gm-zc/gmgo
-replace github.com/go-kit/kit => github.com/go-kit/kit v0.7.0
+)

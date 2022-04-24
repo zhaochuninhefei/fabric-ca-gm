@@ -2129,11 +2129,11 @@ func TestCSRInputLengthCheck(t *testing.T) {
 		CN: "test",
 		Names: []csr.Name{
 			csr.Name{
-				C:  "US",
-				ST: "North Carolina",
-				L:  "Raleigh",
-				O:  "Hyperledger",
-				OU: "Fabric",
+				C:  "CN",
+				ST: "Anhui",
+				L:  "Hefei",
+				O:  "gcsoft",
+				OU: "gcbaas",
 			},
 			csr.Name{
 				C: "CA",

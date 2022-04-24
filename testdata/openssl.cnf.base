@@ -112,21 +112,21 @@ string_mask = nombstr
 # Per "req" section, this is where we define DN info
 [ req_distinguished_name ]
 countryName                     = Country Name (2 letter code)
-countryName_default             = US
+countryName_default             = CN
 countryName_min                 = 2
 countryName_max                 = 2
 
 stateOrProvinceName             = State or Province Name (full name)
-stateOrProvinceName_default     = NC
+stateOrProvinceName_default     = Anhui
 
 localityName                    = Locality Name (eg, city)
-localityName_default            = RTP
+localityName_default            = Hefei
 
 0.organizationName              = Organization Name (eg, company)
-0.organizationName_default      = IBM
+0.organizationName_default      = gcsoft
 
 organizationalUnitName          = Organizational Unit Name (eg, section)
-organizationalUnitName_default  = FVT
+organizationalUnitName_default  = gcbaas
 
 commonName                      = Common Name (eg, YOUR name)
 commonName_max                  = 64

@@ -77,11 +77,11 @@ const jsonConfig = `{
     "cn": "admin",
     "names": [
       {
-        "C": "US",
-        "ST": "North Carolina",
-        "L": null,
-        "O": "Hyperledger",
-        "OU": "Fabric"
+        "C": "CN",
+        "ST": "Anhui",
+        "L": "Hefei",
+        "O": "gcsoft",
+        "OU": "gcbaas"
       }
     ],
     "hosts": [
@@ -1100,11 +1100,11 @@ func TestDifferentKeySizeAlgos(t *testing.T) {
 	config := `csr:
   cn: <<CN>>
   names:
-    - C: US
-      ST: "North Carolina"
-      L:
-      O: Hyperledger
-      OU: Fabric
+    - C: CN
+      ST: "Anhui"
+      L: "Hefei"
+      O: gcsoft
+      OU: gcbaas
   keyrequest:
     algo: <<ALGO>>
     size: <<SIZE>>
