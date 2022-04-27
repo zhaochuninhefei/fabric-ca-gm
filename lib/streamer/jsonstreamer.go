@@ -28,8 +28,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/cloudflare/cfssl/api"
-	"github.com/cloudflare/cfssl/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/api"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"github.com/pkg/errors"
 )
 

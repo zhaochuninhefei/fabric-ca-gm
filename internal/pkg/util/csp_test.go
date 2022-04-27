@@ -17,8 +17,8 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
-	"github.com/cloudflare/cfssl/csr"
 	"github.com/stretchr/testify/assert"
 )
 

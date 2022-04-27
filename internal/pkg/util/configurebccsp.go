@@ -13,10 +13,10 @@ import (
 	"path"
 	"strings"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/pkcs11"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 
@@ -30,37 +30,16 @@ func ConfigureBCCSP(optsPtr **factory.FactoryOpts, mspDir, homeDir string) error
 	if opts == nil {
 		opts = &factory.FactoryOpts{}
 	}
-	// TODO 强制修改加密算法为GM
-	// if opts.ProviderName == "" {
-	// opts.ProviderName = "SW"
-	// }
-	// if strings.ToUpper(opts.ProviderName) == "SW" {
-	// 	if opts.SwOpts == nil {
-	// 		opts.SwOpts = &factory.SwOpts{}
-	// 	}
-	// 	if opts.SwOpts.HashFamily == "" {
-	// 		opts.SwOpts.HashFamily = "SHA2"
-	// 	}
-	// 	if opts.SwOpts.SecLevel == 0 {
-	// 		opts.SwOpts.SecLevel = 256
-	// 	}
-	// 	if opts.SwOpts.FileKeystore == nil {
-	// 		opts.SwOpts.FileKeystore = &factory.FileKeystoreOpts{}
-	// 	}
-	// 	// The mspDir overrides the KeyStorePath; otherwise, if not set, set default
-	// 	if mspDir != "" {
-	// 		opts.SwOpts.FileKeystore.KeyStorePath = path.Join(mspDir, "keystore")
-	// 	} else if opts.SwOpts.FileKeystore.KeyStorePath == "" {
-	// 		opts.SwOpts.FileKeystore.KeyStorePath = path.Join("msp", "keystore")
-	// 	}
-	// }
-	opts.ProviderName = "GM"
+
+	if opts.ProviderName == "" {
+		opts.ProviderName = "SW"
+	}
 	SetProviderName(opts.ProviderName)
 	if opts.SwOpts == nil {
 		opts.SwOpts = &factory.SwOpts{}
 	}
 	if opts.SwOpts.HashFamily == "" {
-		opts.SwOpts.HashFamily = bccsp.GMSM3
+		opts.SwOpts.HashFamily = bccsp.SM3
 	}
 	if opts.SwOpts.SecLevel == 0 {
 		opts.SwOpts.SecLevel = 256

@@ -10,11 +10,11 @@ import (
 	"bytes"
 	"fmt"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
 	ecdsa "gitee.com/zhaochuninhefei/gmgo/sm2"
-	"github.com/cloudflare/cfssl/log"
 	fp256bn "github.com/hyperledger/fabric-amcl/amcl/FP256BN"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"

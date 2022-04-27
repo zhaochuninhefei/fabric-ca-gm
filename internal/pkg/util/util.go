@@ -28,12 +28,12 @@ import (
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -185,7 +185,7 @@ func GenSM2Token(csp bccsp.BCCSP, cert []byte, key bccsp.Key, method, uri string
 
 func genSM2Token(csp bccsp.BCCSP, key bccsp.Key, b64cert, payload string) (string, error) {
 	digest, digestError := csp.Hash([]byte(payload), &bccsp.SM3Opts{})
-	fmt.Printf("digest---,%v", digest)
+	// fmt.Printf("===== internal/pkg/util/util.go genSM2Token digest: %v\n", digest)
 	if digestError != nil {
 		return "", errors.WithMessage(digestError, fmt.Sprintf("Hash failed on '%s'", payload))
 	}
@@ -238,7 +238,7 @@ func VerifyToken(csp bccsp.BCCSP, token string, method, uri string, body []byte,
 	//bccsp.X509PublicKeyImportOpts
 	//Using default hash algo
 	digest, digestError := csp.Hash([]byte(sigString), &bccsp.SM3Opts{})
-	fmt.Printf("digest---,%v", digest)
+	// fmt.Printf("===== internal/pkg/util/util.go VerifyToken digest: %v\n", digest)
 	if digestError != nil {
 		return nil, errors.WithMessage(digestError, "Message digest failed")
 	}

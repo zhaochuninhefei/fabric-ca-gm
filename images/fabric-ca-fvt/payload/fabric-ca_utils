@@ -518,7 +518,7 @@ cat > $runconfig <<EOF
             "ST": "Anhui",
             "L": "Hefei",
             "O": "gcsoft",
-            "OU": "gcbaas"
+            "OU": "Fabric"
          }
       ],
       "hosts": [

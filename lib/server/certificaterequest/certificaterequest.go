@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 

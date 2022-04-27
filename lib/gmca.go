@@ -1,86 +1,77 @@
 package lib
 
 import (
+	"crypto"
+	"crypto/rand"
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/hex"
+	"encoding/pem"
 	"fmt"
+	"io"
+	"math/big"
 	"net"
 	"net/mail"
 	"time"
 
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
-	"crypto"
-	"crypto/rand"
-	"encoding/pem"
-	"io"
-	"math/big"
-
+	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/sw"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
-	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
-	"github.com/cloudflare/cfssl/certdb"
-	"github.com/cloudflare/cfssl/csr"
-	"github.com/cloudflare/cfssl/log"
-	"github.com/cloudflare/cfssl/signer"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+	"github.com/pkg/errors"
 )
 
-//证书签名
+// 证书签名
 func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
-	/*csr := parseCertificateRequest()
-	cert, err := sm2.CreateCertificateToMem(template, rootca, csr.pubkey, rootca.privkey)
-	sm2Cert, err := sm2.parseCertificateFromMem(cert)
-
-	var certRecord = certdb.CertificateRecord{
-		Serial:  sm2Cert.SerialNumber.String(),
-		AKI:     hex.EncodeToString(sm2Cert.AuthorityKeyId),
-		CALabel: req.Label,
-		Status:  "good",
-		Expiry:  sm2Cert.NotAfter,
-		PEM:     string(cert),
-	}*/
-
+	// fmt.Printf("===== lib/gmca.go signCert: CA服务端开始做证书签名\n")
+	// fmt.Printf("===== lib/gmca.go signCert req : %#v\n", req.Subject)
+	// 注意，这里只把 req.Request 转为pem，丢掉了 req.Subject 信息
 	block, _ := pem.Decode([]byte(req.Request))
 	if block == nil {
-		return nil, fmt.Errorf("decode error")
+		return nil, errors.Errorf("decode error")
 	}
 	if block.Type != "NEW CERTIFICATE REQUEST" && block.Type != "CERTIFICATE REQUEST" {
-		return nil, fmt.Errorf("not a csr")
+		return nil, errors.Errorf("not a csr")
 	}
-	template, err := parseCertificateRequest(block.Bytes)
+	// 生成证书模板,由于之前转换的block中丢掉了req.Subject，这里需要在生成模板之后补充req.Subject中的OU信息。
+	template, err := parseCertificateRequestWithSubject(block.Bytes, *req.Subject)
 	if err != nil {
-		log.Infof("xxxx gmca.go ParseCertificateRequest error:[%s]", err)
+		log.Errorf("===== lib/gmca.go signCert: parseCertificateRequest error:[%s]", err)
 		return nil, err
 	}
 
 	certfile := ca.Config.CA.Certfile
 	//certfile := req.Profile
-	log.Infof("^^^^^^^^^^^^^^^^^^^^^^^certifle = %s", certfile)
-	rootkey, _, x509cert, err := util.GetSignerFromCertFile(certfile, ca.csp)
+	// log.Infof("===== lib/gmca.go signCert:certifle = %s", certfile)
+	// 读取CA证书文件，获取CA的私钥与x509证书
+	rootkey, _, rootca, err := util.GetSignerFromCertFile(certfile, ca.csp)
 	if err != nil {
 
 		return nil, err
 	}
-	log.Infof("^^^^^^^^^^^^^^^^^^^^^^^x509cert = %v", x509cert)
-	rootca := ParseX509Certificate2Sm2(x509cert)
-
+	// log.Infof("===== lib/gmca.go signCert:rootca = %v", rootca)
+	// rootca := ParseX509Certificate2Sm2(x509cert)
+	// 使用CA的私钥与x509证书给template签名，生成对应证书，并转为pem字节数组
 	cert, err = sw.CreateCertificateToMem(template, rootca, rootkey)
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("^^^^^^^^^^^^^^^^^^^^^^^template = %v\n cert = %v\n Type = %T", template, cert, template.PublicKey)
-	clientCert, err := gx509.ReadCertificateFromPem(cert)
-	log.Infof("template.SerialNumber---,%v", template.SerialNumber)
-	log.Infof("clientCert--,%v", clientCert)
-	log.Infof("cert--,%v", cert)
-	log.Infof("req.Label--,%v", req.Label)
-	log.Infof("clientCert.NotAfter--,%v", clientCert.NotAfter)
-	log.Info("==================== Exit ParseCertificate")
+	// log.Infof("===== lib/gmca.go signCert:template = %v\n Type = %T", template, template.PublicKey)
+	// 将pem字节数组转为x509证书
+	clientCert, err := x509.ReadCertificateFromPem(cert)
+	// log.Infof("===== lib/gmca.go signCert:template.SerialNumber---,%v", template.SerialNumber)
+	// log.Infof("===== lib/gmca.go signCert:clientCert--,%v", clientCert)
+	// log.Infof("===== lib/gmca.go signCert:cert--,%v", cert)
+	// log.Infof("===== lib/gmca.go signCert:req.Label--,%v", req.Label)
+	// log.Infof("===== lib/gmca.go signCert:clientCert.NotAfter--,%v", clientCert.NotAfter)
+	// log.Info("===== lib/gmca.go signCert: Exit ParseCertificate")
 	if err == nil {
-		log.Infof("xxxx gmca.go signCert ok the sign cert len [%d]", len(cert))
+		log.Infof("===== lib/gmca.go signCert: the sign cert len [%d]", len(cert))
 	}
 
 	var certRecord = certdb.CertificateRecord{
@@ -96,7 +87,7 @@ func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 
 	err = ca.certDBAccessor.InsertCertificate(certRecord)
 	if err != nil {
-		log.Info("=====================error InsertCertificate!")
+		log.Errorf("===== lib/gmca.go signCert error InsertCertificate:[%s]", err)
 	}
 
 	return
@@ -104,42 +95,78 @@ func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 
 //生成证书
 func createGmSm2Cert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Signer) (cert []byte, err error) {
-	log.Infof("xxx xxx in gmca.go  createGmSm2Cert...key :%T", key)
+	// log.Infof("===== lib/gmca.go createGmSm2Cert key :%T", key)
 
 	csrPEM, err := generate(priv, req, key)
 	if err != nil {
-		log.Infof("xxxxxxxxxxxxx create csr error:%s", err)
+		log.Errorf("===== lib/gmca.go createGmSm2Cert generate error:%s", err)
 	}
 	block, _ := pem.Decode(csrPEM)
 	if block == nil {
-		return nil, fmt.Errorf("sm2 csr DecodeFailed")
+		return nil, errors.Errorf("===== lib/gmca.go createGmSm2Cert sm2 csr DecodeFailed")
 	}
 
 	if block.Type != "NEW CERTIFICATE REQUEST" && block.Type != "CERTIFICATE REQUEST" {
-		return nil, fmt.Errorf("sm2 not a csr")
+		return nil, errors.Errorf("===== lib/gmca.go createGmSm2Cert sm2 not a csr")
 	}
 	sm2Template, err := parseCertificateRequest(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("key is %T   ---%T", sm2Template.PublicKey, sm2Template)
+	// log.Infof("===== lib/gmca.go createGmSm2Cert key is %T   ---%T", sm2Template.PublicKey, sm2Template)
 	cert, err = sw.CreateCertificateToMem(sm2Template, sm2Template, key)
 	return
 }
 
-//证书请求转换成证书  参数为  block .Bytes
-func parseCertificateRequest(csrBytes []byte) (template *gx509.Certificate, err error) {
-	csrv, err := gx509.ParseCertificateRequest(csrBytes)
+// 补充OU信息
+func parseCertificateRequestWithSubject(csrBytes []byte, subject signer.Subject) (template *x509.Certificate, err error) {
+	template, err = parseCertificateRequest(csrBytes)
+	log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject before template.Subject: %#v , subject: %#v", template.Subject, subject)
+	if len(subject.Names) > 0 {
+		if len(template.Subject.OrganizationalUnit) == 0 {
+			var tmpOUs []string
+			for _, csrName := range subject.Names {
+				if csrName.OU != "" {
+					tmpOUs = append(tmpOUs, csrName.OU)
+				}
+			}
+			template.Subject.OrganizationalUnit = tmpOUs
+		} else {
+			tmpOUs := template.Subject.OrganizationalUnit
+			for _, csrName := range subject.Names {
+				ouAdd := csrName.OU
+				if ouAdd == "" {
+					continue
+				}
+				needAdd := true
+				for _, ouExist := range tmpOUs {
+					if ouAdd == ouExist {
+						needAdd = false
+						break
+					}
+				}
+				if needAdd {
+					tmpOUs = append(tmpOUs, ouAdd)
+				}
+			}
+			template.Subject.OrganizationalUnit = tmpOUs
+		}
+	}
+	log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject after template.Subject: %#v , subject: %#v", template.Subject, subject)
+	return
+}
+
+// 证书请求转换成证书  参数为  block .Bytes
+func parseCertificateRequest(csrBytes []byte) (template *x509.Certificate, err error) {
+	csrv, err := x509.ParseCertificateRequest(csrBytes)
 	if err != nil {
-		//err = cferr.Wrap(cferr.CSRError, cferr.ParseFailed, err)
-		return
+		return nil, err
 	}
 	err = csrv.CheckSignature()
-	// if err != nil {
-	// 	//err = cferr.Wrap(cferr.CSRError, cferr.KeyMismatch, err)
-	// 	return
-	// }
-	template = &gx509.Certificate{
+	if err != nil {
+		return nil, err
+	}
+	template = &x509.Certificate{
 		Subject:            csrv.Subject,
 		PublicKeyAlgorithm: csrv.PublicKeyAlgorithm,
 		PublicKey:          csrv.PublicKey,
@@ -148,24 +175,24 @@ func parseCertificateRequest(csrBytes []byte) (template *gx509.Certificate, err 
 		IPAddresses:        csrv.IPAddresses,
 		EmailAddresses:     csrv.EmailAddresses,
 	}
-	fmt.Printf("^^^^^^^^^^^^^^^^^^^^^^^^^^algorithn = %v, %v\n", template.PublicKeyAlgorithm, template.SignatureAlgorithm)
-	log.Infof("xxxx publicKey :%T", template.PublicKey)
-
+	// fmt.Printf("===== lib/gmca.go parseCertificateRequest:algorithn = %v, %v\n", template.PublicKeyAlgorithm, template.SignatureAlgorithm)
+	// log.Infof("===== lib/gmca.go parseCertificateRequest:publicKey :%T", template.PublicKey)
+	// 固定有效期间: 100000小时,约11.4年
 	template.NotBefore = time.Now()
 	template.NotAfter = time.Now().Add(time.Hour * 100000)
-	//log.Infof("-----------csrv = %+v", csrv)
+
 	for _, val := range csrv.Extensions {
 		// Check the CSR for the X.509 BasicConstraints (RFC 5280, 4.2.1.9)
 		// extension and append to template if necessary
 		if val.Id.Equal(asn1.ObjectIdentifier{2, 5, 29, 19}) {
 			var constraints csr.BasicConstraints
-			var rest []byte
-
-			if rest, err = asn1.Unmarshal(val.Value, &constraints); err != nil {
-				//return nil, cferr.Wrap(cferr.CSRError, cferr.ParseFailed, err)
-			} else if len(rest) != 0 {
-				//return nil, cferr.Wrap(cferr.CSRError, cferr.ParseFailed, errors.New("x509: trailing data after X.509 BasicConstraints"))
-			}
+			// var rest []byte
+			// if rest, err = asn1.Unmarshal(val.Value, &constraints); err != nil {
+			// 	//return nil, cferr.Wrap(cferr.CSRError, cferr.ParseFailed, err)
+			// } else if len(rest) != 0 {
+			// 	//return nil, cferr.Wrap(cferr.CSRError, cferr.ParseFailed, errors.New("x509: trailing data after X.509 BasicConstraints"))
+			// }
+			asn1.Unmarshal(val.Value, &constraints)
 
 			template.BasicConstraintsValid = true
 			template.IsCA = constraints.IsCA
@@ -189,20 +216,17 @@ func parseCertificateRequest(csrBytes []byte) (template *gx509.Certificate, err 
 	return
 }
 
-//cloudflare 证书请求 转成 国密证书请求
+// 证书请求 转成 国密证书请求
 func generate(priv crypto.Signer, req *csr.CertificateRequest, key bccsp.Key) (csr []byte, err error) {
-	log.Info("xx entry generate")
+	// log.Info("===== lib/gmca.go generate")
 	sigAlgo := signerAlgo(priv)
-	if sigAlgo == gx509.UnknownSignatureAlgorithm {
-		return nil, fmt.Errorf("Private key is unavailable")
+	if sigAlgo == x509.UnknownSignatureAlgorithm {
+		return nil, errors.Errorf("===== lib/gmca.go generate Private key is unavailable")
 	}
-	log.Info("xx begin create sm2.CertificateRequest")
+	// log.Info("===== lib/gmca.go generate begin create sm2.CertificateRequest")
 	// TODO 添加错误日志
-	reqName, err := req.Name()
-	if err != nil {
-		log.Errorf("csr.CertificateRequest.Name error : v%", err)
-	}
-	var tpl = gx509.CertificateRequest{
+	reqName := req.Name()
+	var tpl = x509.CertificateRequest{
 		Subject:            reqName,
 		SignatureAlgorithm: sigAlgo,
 	}
@@ -219,39 +243,53 @@ func generate(priv crypto.Signer, req *csr.CertificateRequest, key bccsp.Key) (c
 	if req.CA != nil {
 		err = appendCAInfoToCSRSm2(req.CA, &tpl)
 		if err != nil {
-			err = fmt.Errorf("sm2 GenerationFailed")
+			err = fmt.Errorf("===== lib/gmca.go generate sm2 GenerationFailed")
 			return
 		}
 	}
-	if req.SerialNumber != "" {
-
-	}
 	csr, err = sw.CreateSm2CertificateRequestToMem(&tpl, key)
-	log.Info("xx exit generate")
+	log.Info("===== lib/gmca.go generate exit generate")
 	return
 }
 
-func signerAlgo(priv crypto.Signer) gx509.SignatureAlgorithm {
-	switch pub := priv.Public().(type) {
+func signerAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
+	switch priv.Public().(type) {
 	case *sm2.PublicKey:
-		switch pub.Curve {
-		case sm2.P256Sm2():
-			return gx509.SM2WithSM3
-		default:
-			return gx509.SM2WithSM3
-		}
+		return x509.SM2WithSM3
 	default:
-		return gx509.UnknownSignatureAlgorithm
+		return x509.UnknownSignatureAlgorithm
 	}
 }
 
+// // appendCAInfoToCSR appends CAConfig BasicConstraint extension to a CSR
+// func appendCAInfoToCSR(reqConf *csr.CAConfig, csreq *x509.CertificateRequest) error {
+// 	pathlen := reqConf.PathLength
+// 	if pathlen == 0 && !reqConf.PathLenZero {
+// 		pathlen = -1
+// 	}
+// 	val, err := asn1.Marshal(csr.BasicConstraints{true, pathlen})
+
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	csreq.ExtraExtensions = []pkix.Extension{
+// 		{
+// 			Id:       asn1.ObjectIdentifier{2, 5, 29, 19},
+// 			Value:    val,
+// 			Critical: true,
+// 		},
+// 	}
+// 	return nil
+// }
+
 // appendCAInfoToCSR appends CAConfig BasicConstraint extension to a CSR
-func appendCAInfoToCSR(reqConf *csr.CAConfig, csreq *x509.CertificateRequest) error {
+func appendCAInfoToCSRSm2(reqConf *csr.CAConfig, csreq *x509.CertificateRequest) error {
 	pathlen := reqConf.PathLength
 	if pathlen == 0 && !reqConf.PathLenZero {
 		pathlen = -1
 	}
-	val, err := asn1.Marshal(csr.BasicConstraints{true, pathlen})
+	val, err := asn1.Marshal(csr.BasicConstraints{IsCA: true, MaxPathLen: pathlen})
 
 	if err != nil {
 		return err
@@ -264,81 +302,6 @@ func appendCAInfoToCSR(reqConf *csr.CAConfig, csreq *x509.CertificateRequest) er
 			Critical: true,
 		},
 	}
-	return nil
-}
-
-// appendCAInfoToCSR appends CAConfig BasicConstraint extension to a CSR
-func appendCAInfoToCSRSm2(reqConf *csr.CAConfig, csreq *gx509.CertificateRequest) error {
-	pathlen := reqConf.PathLength
-	if pathlen == 0 && !reqConf.PathLenZero {
-		pathlen = -1
-	}
-	val, err := asn1.Marshal(csr.BasicConstraints{true, pathlen})
-
-	if err != nil {
-		return err
-	}
-
-	csreq.ExtraExtensions = []pkix.Extension{
-		{
-			Id:       asn1.ObjectIdentifier{2, 5, 29, 19},
-			Value:    val,
-			Critical: true,
-		},
-	}
 
 	return nil
-}
-
-func ParseX509Certificate2Sm2(x509Cert *x509.Certificate) *gx509.Certificate {
-	sm2cert := &gx509.Certificate{
-		Raw:                         x509Cert.Raw,
-		RawTBSCertificate:           x509Cert.RawTBSCertificate,
-		RawSubjectPublicKeyInfo:     x509Cert.RawSubjectPublicKeyInfo,
-		RawSubject:                  x509Cert.RawSubject,
-		RawIssuer:                   x509Cert.RawIssuer,
-		Signature:                   x509Cert.Signature,
-		SignatureAlgorithm:          gx509.SignatureAlgorithm(x509Cert.SignatureAlgorithm),
-		PublicKeyAlgorithm:          gx509.PublicKeyAlgorithm(x509Cert.PublicKeyAlgorithm),
-		PublicKey:                   x509Cert.PublicKey,
-		Version:                     x509Cert.Version,
-		SerialNumber:                x509Cert.SerialNumber,
-		Issuer:                      x509Cert.Issuer,
-		Subject:                     x509Cert.Subject,
-		NotBefore:                   x509Cert.NotBefore,
-		NotAfter:                    x509Cert.NotAfter,
-		KeyUsage:                    gx509.KeyUsage(x509Cert.KeyUsage),
-		Extensions:                  x509Cert.Extensions,
-		ExtraExtensions:             x509Cert.ExtraExtensions,
-		UnhandledCriticalExtensions: x509Cert.UnhandledCriticalExtensions,
-		//ExtKeyUsage:	[]x509.ExtKeyUsage(x509Cert.ExtKeyUsage) ,
-		UnknownExtKeyUsage:    x509Cert.UnknownExtKeyUsage,
-		BasicConstraintsValid: x509Cert.BasicConstraintsValid,
-		IsCA:                  x509Cert.IsCA,
-		MaxPathLen:            x509Cert.MaxPathLen,
-		// MaxPathLenZero indicates that BasicConstraintsValid==true and
-		// MaxPathLen==0 should be interpreted as an actual maximum path length
-		// of zero. Otherwise, that combination is interpreted as MaxPathLen
-		// not being set.
-		MaxPathLenZero: x509Cert.MaxPathLenZero,
-		SubjectKeyId:   x509Cert.SubjectKeyId,
-		AuthorityKeyId: x509Cert.AuthorityKeyId,
-		// RFC 5280, 4.2.2.1 (Authority Information Access)
-		OCSPServer:            x509Cert.OCSPServer,
-		IssuingCertificateURL: x509Cert.IssuingCertificateURL,
-		// Subject Alternate Name values
-		DNSNames:       x509Cert.DNSNames,
-		EmailAddresses: x509Cert.EmailAddresses,
-		IPAddresses:    x509Cert.IPAddresses,
-		// Name constraints
-		PermittedDNSDomainsCritical: x509Cert.PermittedDNSDomainsCritical,
-		PermittedDNSDomains:         x509Cert.PermittedDNSDomains,
-		// CRL Distribution Points
-		CRLDistributionPoints: x509Cert.CRLDistributionPoints,
-		PolicyIdentifiers:     x509Cert.PolicyIdentifiers,
-	}
-	for _, val := range x509Cert.ExtKeyUsage {
-		sm2cert.ExtKeyUsage = append(sm2cert.ExtKeyUsage, gx509.ExtKeyUsage(val))
-	}
-	return sm2cert
 }

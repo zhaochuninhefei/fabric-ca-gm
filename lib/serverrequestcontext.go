@@ -14,10 +14,10 @@ import (
 	"strconv"
 	"strings"
 
-	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
-
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
+	"gitee.com/zhaochuninhefei/cfssl-gm/config"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/revoke"
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
@@ -26,12 +26,9 @@ import (
 	cr "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/certificaterequest"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-
-	"gitee.com/zhaochuninhefei/fabric-config-gm/cfssl/revoke"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 	gmux "gitee.com/zhaochuninhefei/gmgo/mux"
-	"github.com/cloudflare/cfssl/config"
-	"github.com/cloudflare/cfssl/log"
-	"github.com/cloudflare/cfssl/signer"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -95,6 +92,7 @@ func (ctx *serverRequestContextImpl) BasicAuthentication() (string, error) {
 	if !ok {
 		return "", caerrors.NewAuthenticationErr(caerrors.ErrNoUserPass, "No user/pass in authorization header")
 	}
+	// fmt.Printf("===== lib/serverrequestcontext.go BasicAuthentication username: %s/n", username)
 	// Get the CA that is targeted by this request
 	ca, err := ctx.GetCA()
 	if err != nil {
@@ -111,7 +109,7 @@ func (ctx *serverRequestContextImpl) BasicAuthentication() (string, error) {
 	if err != nil {
 		return "", caerrors.NewAuthenticationErr(caerrors.ErrInvalidUser, "Failed to get user: %s", err)
 	}
-
+	// fmt.Printf("===== lib/serverrequestcontext.go BasicAuthentication 从ca.registry获取到注册用户 Name:%s Type:%s\n", ctx.ui.GetName(), ctx.ui.GetType())
 	attempts := ctx.ui.GetFailedLoginAttempts()
 	allowedAttempts := ca.Config.Cfg.Identities.PasswordAttempts
 	if allowedAttempts > 0 {
@@ -133,6 +131,7 @@ func (ctx *serverRequestContextImpl) BasicAuthentication() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	// fmt.Printf("===== lib/serverrequestcontext.go BasicAuthentication ctx.caller Name:%s Type:%s\n", ctx.caller.GetName(), ctx.caller.GetType())
 	// Return the username
 	return username, nil
 }
@@ -620,7 +619,7 @@ func (ctx *serverRequestContextImpl) canActOnType(requestedType string) (bool, e
 
 func strContained(needle string, haystack []string) bool {
 	for _, s := range haystack {
-		if strings.ToLower(s) == strings.ToLower(needle) {
+		if strings.EqualFold(s, needle) {
 			return true
 		}
 	}

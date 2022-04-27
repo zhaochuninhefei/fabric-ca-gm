@@ -16,11 +16,11 @@ import (
 
 	"gitee.com/zhaochuninhefei/gmgo/x509"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/crl"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
-	"gitee.com/zhaochuninhefei/fabric-config-gm/cfssl/crl"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 

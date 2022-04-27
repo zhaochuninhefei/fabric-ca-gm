@@ -15,22 +15,20 @@ import (
 	"strings"
 	_ "time" // for ocspSignerFromConfig
 
+	_ "gitee.com/zhaochuninhefei/cfssl-gm/cli" // for ocspSignerFromConfig
+	"gitee.com/zhaochuninhefei/cfssl-gm/config"
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	_ "gitee.com/zhaochuninhefei/cfssl-gm/ocsp" // for ocspSignerFromConfig
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer/local"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	cspsigner "gitee.com/zhaochuninhefei/fabric-gm/bccsp/signer"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
-
 	gtls "gitee.com/zhaochuninhefei/gmgo/gmtls"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
-	_ "github.com/cloudflare/cfssl/cli" // for ocspSignerFromConfig
-
-	"github.com/cloudflare/cfssl/config"
-	"github.com/cloudflare/cfssl/csr"
-	"github.com/cloudflare/cfssl/log"
-	_ "github.com/cloudflare/cfssl/ocsp" // for ocspSignerFromConfig
-	"github.com/cloudflare/cfssl/signer"
-	"github.com/cloudflare/cfssl/signer/local"
 	"github.com/pkg/errors"
 )
 
@@ -76,7 +74,6 @@ func makeFileNamesAbsolute(opts *factory.FactoryOpts, homeDir string) error {
 
 // BccspBackedSigner attempts to create a signer using csp bccsp.BCCSP. This csp could be SW (golang crypto)
 // PKCS11 or whatever BCCSP-conformant library is configured
-// TODO: 尝试将返回值从cfssl的signer.Signer改为 crypto.Signer
 func BccspBackedSigner(caFile, keyFile string, policy *config.Signing, csp bccsp.BCCSP) (signer.Signer, error) {
 	_, cspSigner, parsedCa, err := GetSignerFromCertFile(caFile, csp)
 	if err != nil {
@@ -96,9 +93,7 @@ func BccspBackedSigner(caFile, keyFile string, policy *config.Signing, csp bccsp
 		}
 		cspSigner = signer
 	}
-	// TODO: 这里使用`github.com/cloudflare/cfssl@v1.6.1`的`signer/local/local.go`的函数与类型可能有问题，
-	// 因为它们不支持 sm2相关算法
-	signer, err := local.NewSigner(cspSigner, parsedCa.ToX509Certificate(), signer.DefaultSigAlgo(cspSigner), policy)
+	signer, err := local.NewSigner(cspSigner, parsedCa, signer.DefaultSigAlgo(cspSigner), policy)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create new signer")
 	}
@@ -146,28 +141,30 @@ func getBCCSPKeyOpts(kr *csr.KeyRequest, ephemeral bool) (opts bccsp.KeyGenOpts,
 	}
 }
 
+// 根据国密x509证书中获取私钥与Signer。
 // GetSignerFromCert load private key represented by ski and return bccsp signer that conforms to crypto.Signer
 func GetSignerFromCert(cert *gx509.Certificate, csp bccsp.BCCSP) (bccsp.Key, crypto.Signer, error) {
 	if csp == nil {
 		return nil, nil, errors.New("CSP was not initialized")
 	}
-	log.Infof("xxxx begin csp.KeyImport,cert.PublicKey is %T   csp:%T", cert.PublicKey, csp)
-	switch cert.PublicKey.(type) {
-	case sm2.PublicKey:
-		log.Infof("xxxxx cert is sm2 puk")
-	default:
-		log.Infof("xxxxx cert is default puk")
-	}
+	// log.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: begin csp.KeyImport,cert.PublicKey is %T   csp:%T", cert.PublicKey, csp)
+	// switch cert.PublicKey.(type) {
+	// case sm2.PublicKey:
+	// 	log.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: cert is sm2 puk")
+	// default:
+	// 	log.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: cert is default puk")
+	// }
 
 	// sm2cert := sw.ParseX509Certificate2Sm2(cert)
 	// get the public key in the right format
+	// 从国密x509证书中获取证书公钥
 	certPubK, err := csp.KeyImport(cert, &bccsp.GMX509PublicKeyImportOpts{Temporary: true})
 	if err != nil {
 		return nil, nil, errors.WithMessage(err, "Failed to import certificate's public key")
 	}
 	ski := certPubK.SKI()
 	kname := hex.EncodeToString(ski)
-	log.Infof("xxxx begin csp.GetKey kname:%s", kname)
+	// log.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: begin csp.GetKey kname:%s", kname)
 	// Get the key given the SKI value
 	privateKey, err := csp.GetKey(ski)
 	if err != nil {
@@ -183,13 +180,14 @@ func GetSignerFromCert(cert *gx509.Certificate, csp bccsp.BCCSP) (bccsp.Key, cry
 	if err != nil {
 		return nil, nil, errors.WithMessage(err, "Failed to load ski from bccsp")
 	}
-	log.Info("xxxx end GetSignerFromCert successfuul")
+	// log.Info("===== internal/pkg/util/csp.go GetSignerFromCert successfuul")
 	return privateKey, signer, nil
 }
 
+// 根据x509证书文件获取对应的私钥、Signer以及x509证书。
 // GetSignerFromCertFile load skiFile and load private key represented by ski and return bccsp signer that conforms to crypto.Signer
 func GetSignerFromCertFile(certFile string, csp bccsp.BCCSP) (bccsp.Key, crypto.Signer, *gx509.Certificate, error) {
-	log.Infof("certFile-----,%v", certFile)
+	// log.Infof("===== internal/pkg/util/csp.go GetSignerFromCertFile:certFile:,%s", certFile)
 	// Load cert file
 	certBytes, err := ioutil.ReadFile(certFile)
 	if err != nil {
@@ -216,7 +214,7 @@ func GetSignerFromCertFile(certFile string, csp bccsp.BCCSP) (bccsp.Key, crypto.
 	// 	cert = sw.ParseSm2Certificate2X509(sm2Cert)
 	// }
 	key, cspSigner, err := GetSignerFromCert(cert, csp)
-	log.Infof("+++++++++++++KEY = %T error = %v", key, err)
+	// log.Infof("+++++++++++++KEY = %T error = %v", key, err)
 	return key, cspSigner, cert, err
 }
 

@@ -9,10 +9,10 @@ package mysql
 import (
 	"strings"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 

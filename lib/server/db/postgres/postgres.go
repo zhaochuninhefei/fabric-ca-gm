@@ -13,10 +13,10 @@ import (
 	"regexp"
 	"strings"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // import to support Postgres
 	"github.com/pkg/errors"

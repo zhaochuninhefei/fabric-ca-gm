@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	cadb "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/metrics"
@@ -18,7 +19,6 @@ import (
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 	"gitee.com/zhaochuninhefei/gmgo/gmhttp/httptest"
 	"gitee.com/zhaochuninhefei/gmgo/mux"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/jmoiron/sqlx"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"

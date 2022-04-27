@@ -11,15 +11,14 @@ import (
 	"strconv"
 	"strings"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
-	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/spi"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 
@@ -103,7 +102,7 @@ func affiliationsStreamingHandler(ctx *serverRequestContextImpl) (interface{}, e
 }
 
 // processStreamingAffiliationRequest will process the configuration request
-func processStreamingAffiliationRequest(ctx *serverRequestContextImpl, caname string, caller user.User) (interface{}, error) {
+func processStreamingAffiliationRequest(ctx *serverRequestContextImpl, caname string, caller cadbuser.User) (interface{}, error) {
 	log.Debug("Processing affiliation configuration update request")
 
 	method := ctx.req.Method
@@ -118,7 +117,7 @@ func processStreamingAffiliationRequest(ctx *serverRequestContextImpl, caname st
 }
 
 // processRequest will process the configuration request
-func processAffiliationRequest(ctx *serverRequestContextImpl, caname string, caller user.User) (interface{}, error) {
+func processAffiliationRequest(ctx *serverRequestContextImpl, caname string, caller cadbuser.User) (interface{}, error) {
 	log.Debug("Processing affiliation configuration update request")
 
 	method := ctx.req.Method
@@ -134,7 +133,7 @@ func processAffiliationRequest(ctx *serverRequestContextImpl, caname string, cal
 	}
 }
 
-func processGetAllAffiliationsRequest(ctx *serverRequestContextImpl, caller user.User, caname string) (*api.AffiliationResponse, error) {
+func processGetAllAffiliationsRequest(ctx *serverRequestContextImpl, caller cadbuser.User, caname string) (*api.AffiliationResponse, error) {
 	log.Debug("Processing GET all affiliations request")
 
 	resp, err := getAffiliations(ctx, caller, caname)
@@ -145,7 +144,7 @@ func processGetAllAffiliationsRequest(ctx *serverRequestContextImpl, caller user
 	return resp, nil
 }
 
-func processGetAffiliationRequest(ctx *serverRequestContextImpl, caller user.User, caname string) (*api.AffiliationResponse, error) {
+func processGetAffiliationRequest(ctx *serverRequestContextImpl, caller cadbuser.User, caname string) (*api.AffiliationResponse, error) {
 	log.Debug("Processing GET affiliation request")
 
 	affiliation, err := ctx.GetVar("affiliation")
@@ -161,7 +160,7 @@ func processGetAffiliationRequest(ctx *serverRequestContextImpl, caller user.Use
 	return resp, nil
 }
 
-func getAffiliations(ctx *serverRequestContextImpl, caller user.User, caname string) (*api.AffiliationResponse, error) {
+func getAffiliations(ctx *serverRequestContextImpl, caller cadbuser.User, caname string) (*api.AffiliationResponse, error) {
 	log.Debug("Requesting all affiliations that the caller is authorized view")
 	var err error
 
@@ -197,7 +196,7 @@ func getAffiliations(ctx *serverRequestContextImpl, caller user.User, caname str
 	return resp, nil
 }
 
-func getAffiliation(ctx *serverRequestContextImpl, caller user.User, requestedAffiliation, caname string) (*api.AffiliationResponse, error) {
+func getAffiliation(ctx *serverRequestContextImpl, caller cadbuser.User, requestedAffiliation, caname string) (*api.AffiliationResponse, error) {
 	log.Debugf("Requesting affiliation '%s'", requestedAffiliation)
 
 	registry := ctx.ca.registry
@@ -407,7 +406,7 @@ func processAffiliationPutRequest(ctx *serverRequestContextImpl, caname string) 
 	return resp, nil
 }
 
-func getResponse(result *user.DbTxResult, caname string) (*api.AffiliationResponse, error) {
+func getResponse(result *cadbuser.DbTxResult, caname string) (*api.AffiliationResponse, error) {
 	resp := &api.AffiliationResponse{CAName: caname}
 	// Get all root affiliation names from the result
 	rootNames := getRootAffiliationNames(result.Affiliations)
@@ -447,7 +446,7 @@ func getRootAffiliationNames(affiliations []spi.Affiliation) []string {
 // Fill 'info' with affiliation info associated with affiliation 'name' hierarchically.
 // Use 'affiliations' to find child affiliations for this affiliation, and
 // 'identities' to find identities associated with this affiliation.
-func fillAffiliationInfo(info *api.AffiliationInfo, name string, result *user.DbTxResult, affiliations []spi.Affiliation) error {
+func fillAffiliationInfo(info *api.AffiliationInfo, name string, result *cadbuser.DbTxResult, affiliations []spi.Affiliation) error {
 	info.Name = name
 	// Add identities which have this affiliation
 	identities := []api.IdentityInfo{}
@@ -507,7 +506,7 @@ func isChildAffiliation(name, child string) bool {
 	return len(childParts) == len(nameParts)+1
 }
 
-func getIDInfo(user user.User) (*api.IdentityInfo, error) {
+func getIDInfo(user cadbuser.User) (*api.IdentityInfo, error) {
 	allAttributes, err := user.GetAttributes(nil)
 	if err != nil {
 		return nil, err

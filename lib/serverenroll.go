@@ -17,13 +17,12 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
 
-	"github.com/cloudflare/cfssl/config"
-	"github.com/cloudflare/cfssl/csr"
-	cferr "github.com/cloudflare/cfssl/errors"
-	"github.com/cloudflare/cfssl/log"
-	"github.com/cloudflare/cfssl/signer"
+	"gitee.com/zhaochuninhefei/cfssl-gm/config"
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	cferr "gitee.com/zhaochuninhefei/cfssl-gm/errors"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"github.com/pkg/errors"
 )
 
@@ -98,6 +97,8 @@ func reenrollHandler(ctx *serverRequestContextImpl) (interface{}, error) {
 
 // Handle the common processing for enroll and reenroll
 func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error) {
+	// fmt.Printf("===== lib/serverenroll.go handleEnroll: ca服务端开始处理证书拉取请求\n")
+	// fmt.Printf("===== lib/serverenroll.go handleEnroll: 请求证书的用户信息 Name:%s Type:%s\n", ctx.ui.GetName(), ctx.ui.GetType())
 	var req api.EnrollmentRequestNet
 	err := ctx.ReadBody(&req)
 	if err != nil {
@@ -156,6 +157,7 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 	// Sign the certificate
 	// TODO 国密改造
 	// cert, err := ca.enrollSigner.Sign(req.SignRequest)
+	// fmt.Printf("===== lib/serverenroll.go handleEnroll: 签名前确认请求数据 req.SignRequest.Subject: %#v\n", req.SignRequest.Subject)
 	cert, err := signCert(req.SignRequest, ca)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Certificate signing failure")
@@ -192,18 +194,20 @@ func processSignRequest(id string, req *signer.SignRequest, ca *CA, ctx *serverR
 	}
 	var csrReq *x509.CertificateRequest
 	var err error
-	if IsGMConfig() {
-		sm2csrReq, err := gx509.ParseCertificateRequest(block.Bytes)
-		if err == nil {
-			csrReq = ParseSm2CertificateRequest2X509(sm2csrReq)
-		}
-	} else {
-		csrReq, err = x509.ParseCertificateRequest(block.Bytes)
-	}
+	// if IsGMConfig() {
+	// 	sm2csrReq, err := gx509.ParseCertificateRequest(block.Bytes)
+	// 	if err == nil {
+	// 		csrReq = ParseSm2CertificateRequest2X509(sm2csrReq)
+	// 	}
+	// } else {
+	// 	csrReq, err = x509.ParseCertificateRequest(block.Bytes)
+	// }
+	csrReq, err = x509.ParseCertificateRequest(block.Bytes)
 	if err != nil {
 		return err
 	}
-	log.Debugf("Processing sign request: id=%s, CommonName=%s, Subject=%+v", id, csrReq.Subject.CommonName, req.Subject)
+	// log.Debugf("===== lib/serverenroll.go processSignRequest req.Subject: %#v", req.Subject)
+	// log.Debugf("Processing sign request: id=%s, CommonName=%s, Subject=%#v", id, csrReq.Subject.CommonName, csrReq.Subject)
 	if (req.Subject != nil && req.Subject.CN != id) || csrReq.Subject.CommonName != id {
 		return caerrors.NewHTTPErr(403, caerrors.ErrCNInvalidEnroll, "The CSR subject common name must equal the enrollment ID")
 	}
@@ -337,11 +341,14 @@ func setRequestOUs(req *signer.SignRequest, caller user.User) {
 		}
 	}
 	// Add an OU field with the type
+	// fmt.Printf("===== lib/serverenroll.go setRequestOUs caller.GetType: %s\n", caller.GetType())
 	names = append(names, csr.Name{OU: caller.GetType()})
 	for _, aff := range caller.GetAffiliationPath() {
 		names = append(names, csr.Name{OU: aff})
 	}
+	// fmt.Printf("===== lib/serverenroll.go setRequestOUs names: %v\n", names)
 	// Replace with new names
 	s.Names = names
 	req.Subject = s
+	// fmt.Printf("===== lib/serverenroll.go setRequestOUs req.Subject: %#v\n", req.Subject)
 }

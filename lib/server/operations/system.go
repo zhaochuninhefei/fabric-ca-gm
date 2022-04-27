@@ -16,6 +16,7 @@ import (
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/metadata"
 	"gitee.com/zhaochuninhefei/fabric-config-gm/healthz"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics"
@@ -25,7 +26,6 @@ import (
 	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
 	"gitee.com/zhaochuninhefei/gmgo/mux"
 	"gitee.com/zhaochuninhefei/gmgo/prometheus/promhttp"
-	"github.com/cloudflare/cfssl/log"
 	kitstatsd "github.com/go-kit/kit/metrics/statsd"
 )
 

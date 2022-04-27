@@ -13,13 +13,13 @@ import (
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential/idemix"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential/x509"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 

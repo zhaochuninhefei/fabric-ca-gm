@@ -3,18 +3,18 @@ module gitee.com/zhaochuninhefei/fabric-ca-gm
 go 1.17
 
 require (
+	gitee.com/zhaochuninhefei/cfssl-gm v0.0.2
 	gitee.com/zhaochuninhefei/fabric-config-gm v0.0.4
 	gitee.com/zhaochuninhefei/fabric-gm v0.0.4
-	gitee.com/zhaochuninhefei/gmgo v0.0.9
+	gitee.com/zhaochuninhefei/gmgo v0.0.10
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
-	github.com/cloudflare/cfssl v1.6.1
 	github.com/go-kit/kit v0.10.0
 	github.com/golang/protobuf v1.5.2
 	github.com/hyperledger/fabric-amcl v0.0.0-20210603140002-2670f91851c8
-	github.com/jmoiron/sqlx v1.3.4
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/kisielk/sqlstruct v0.0.0-20210630145711-dae28ed37023
-	github.com/lib/pq v1.10.4
-	github.com/mattn/go-sqlite3 v1.14.11
+	github.com/lib/pq v1.10.5
+	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/mitchellh/mapstructure v1.4.3
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.18.1
@@ -24,8 +24,8 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.10.1
-	github.com/stretchr/testify v1.7.1-0.20210116013205-6990a05d54c2
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
+	github.com/stretchr/testify v1.7.1
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d
 )
 
@@ -36,6 +36,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.3.0 // indirect
+	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cncf/udpa/go v0.0.0-20210930031921-04548b0d99d4 // indirect
 	github.com/cncf/xds/go v0.0.0-20211130200136-a8f946100490 // indirect
@@ -59,6 +60,7 @@ require (
 	github.com/google/certificate-transparency-go v1.1.2 // indirect
 	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/google/trillian v1.4.0 // indirect
+	github.com/google/uuid v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
@@ -66,7 +68,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jhump/protoreflect v1.9.0 // indirect
-	github.com/jmhodges/clock v0.0.0-20160418191101-880ee4c33548 // indirect
+	github.com/jmhodges/clock v0.0.0-20211218015646-21de17d65b1b // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
@@ -93,10 +95,10 @@ require (
 	github.com/sykesm/zap-logfmt v0.0.4 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802 // indirect
 	github.com/urfave/cli v1.22.5 // indirect
-	github.com/weppos/publicsuffix-go v0.15.1-0.20210511084619-b1f36a2d6c0b // indirect
+	github.com/weppos/publicsuffix-go v0.15.1-0.20220329081811-9a40b608a236 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
-	github.com/zmap/zcrypto v0.0.0-20210511125630-18f1e0152cfc // indirect
-	github.com/zmap/zlint/v3 v3.1.0 // indirect
+	github.com/zmap/zcrypto v0.0.0-20220402174210-599ec18ecbac // indirect
+	github.com/zmap/zlint v1.1.0 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.1 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.1 // indirect
@@ -123,7 +125,7 @@ require (
 	go.uber.org/multierr v1.7.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/mod v0.5.1 // indirect
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
+	golang.org/x/net v0.0.0-20220421235706-1d1ef9303861 // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
 	golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5 // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -143,12 +145,16 @@ require (
 )
 
 replace (
+	// gitee.com/zhaochuninhefei/cfssl-gm => /home/zhaochun/work/sources/gcbaas/cfssl-gm
+	// gitee.com/zhaochuninhefei/fabric-config-gm => /home/zhaochun/work/sources/gcbaas/fabric-config-gm
+	// gitee.com/zhaochuninhefei/fabric-gm => /home/zhaochun/work/sources/gcbaas/fabric-gm
+	// gitee.com/zhaochuninhefei/fabric-protos-go-gm => /home/zhaochun/work/sources/gcbaas/fabric-protos-go-gm
+	// gitee.com/zhaochuninhefei/gmgo => /home/zhaochun/work/sources/gm-zc/gmgo
 	github.com/go-kit/kit => github.com/go-kit/kit v0.7.0
 	// TODO:需要确认1.3.2版本的ReadInConfig内部将map key转为小写字母是否有影响。
 	// 如果有影响，需要将viper版本改回 v0.0.0-20150908122457-1967d93db724 ，但会有一些测试案例编译不过。
 	github.com/spf13/viper => github.com/spf13/viper v1.3.2
-// gitee.com/zhaochuninhefei/fabric-config-gm => /home/zhaochun/work/sources/gcbaas/fabric-config-gm
-// gitee.com/zhaochuninhefei/fabric-gm => /home/zhaochun/work/sources/gcbaas/fabric-gm
-// gitee.com/zhaochuninhefei/fabric-protos-go-gm => /home/zhaochun/work/sources/gcbaas/fabric-protos-go-gm
-// gitee.com/zhaochuninhefei/gmgo => /home/zhaochun/work/sources/gm-zc/gmgo
+	// zlint与zcrypto版本必须匹配，否则zlint编译出错
+	github.com/zmap/zcrypto => github.com/zmap/zcrypto v0.0.0-20190729165852-9051775e6a2e
+	github.com/zmap/zlint => github.com/zmap/zlint v0.0.0-20190806154020-fd021b4cfbeb
 )

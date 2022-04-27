@@ -7,14 +7,15 @@ SPDX-License-Identifier: Apache-2.0
 package lib
 
 import (
-	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
-	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
-	dbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-	"github.com/cloudflare/cfssl/signer"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
+
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
+	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
+	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
+	dbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStateUpdate(t *testing.T) {

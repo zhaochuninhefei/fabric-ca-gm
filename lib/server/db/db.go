@@ -11,8 +11,8 @@ import (
 	"database/sql"
 	"time"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
-	"github.com/cloudflare/cfssl/certdb"
 	"github.com/jmoiron/sqlx"
 )
 

@@ -9,7 +9,7 @@ package log
 import (
 	"testing"
 
-	"github.com/cloudflare/cfssl/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"github.com/stretchr/testify/assert"
 )
 

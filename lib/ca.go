@@ -8,7 +8,6 @@ package lib
 
 import (
 	"bytes"
-	"crypto/rsa"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
@@ -19,8 +18,12 @@ import (
 	"sync"
 	"time"
 
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
+	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
+	"gitee.com/zhaochuninhefei/cfssl-gm/config"
+	cfcsr "gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
+	cflocalsigner "gitee.com/zhaochuninhefei/cfssl-gm/signer/local"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
@@ -28,7 +31,6 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/metadata"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
-	cadb "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	cadbfactory "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/factory"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/mysql"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/postgres"
@@ -36,18 +38,11 @@ import (
 	dbutil "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	idemix "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/ldap"
-	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
-	"github.com/cloudflare/cfssl/certdb"
-	"github.com/cloudflare/cfssl/config"
-	cfcsr "github.com/cloudflare/cfssl/csr"
-	"github.com/cloudflare/cfssl/initca"
-	"github.com/cloudflare/cfssl/log"
-	"github.com/cloudflare/cfssl/signer"
-	cflocalsigner "github.com/cloudflare/cfssl/signer/local"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/pkg/errors"
 )
 
@@ -84,7 +79,7 @@ type CA struct {
 	// The certificate DB accessor
 	certDBAccessor *CertDBAccessor
 	// The user registry
-	registry user.Registry
+	registry cadbuser.Registry
 	// The signer used for enrollment
 	enrollSigner signer.Signer
 	// Idemix issuer
@@ -146,8 +141,7 @@ func (ca *CA) init(renew bool) (err error) {
 	log.Debugf("Init CA with home %s and config %+v", ca.HomeDir, *ca.Config)
 
 	// Initialize the config, setting defaults, etc
-	// TODO 设置ProviderName
-	log.Info("#################name = ", ca.Config.CSP.ProviderName)
+	// log.Info("===== lib/ca.go init ca.Config.CSP.ProviderName = ", ca.Config.CSP.ProviderName)
 	SetProviderName(ca.Config.CSP.ProviderName)
 	err = ca.initConfig()
 	if err != nil {
@@ -335,12 +329,13 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 		}
 
 		if (csr.KeyRequest == nil) || (csr.KeyRequest.Algo == "" && csr.KeyRequest.Size == 0) {
-			// TODO 添加国密分支
-			if IsGMConfig() {
-				csr.KeyRequest = GetGMKeyRequest(ca.Config)
-			} else {
-				csr.KeyRequest = GetKeyRequest(ca.Config)
-			}
+			// TODO 目前强制使用国密
+			// if IsGMConfig() {
+			// 	csr.KeyRequest = GetGMKeyRequest(ca.Config)
+			// } else {
+			// 	csr.KeyRequest = GetKeyRequest(ca.Config)
+			// }
+			csr.KeyRequest = GetGMKeyRequest(ca.Config)
 		}
 		req := cfcsr.CertificateRequest{
 			CN:           csr.CN,
@@ -358,12 +353,13 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 			return nil, err
 		}
 		// Call CFSSL to initialize the CA
-		// TODO 添加国密分支
-		if IsGMConfig() {
-			cert, err = createGmSm2Cert(key, &req, cspSigner)
-		} else {
-			cert, _, err = initca.NewFromSigner(&req, cspSigner)
-		}
+		// TODO 添加国密分支 目前强制使用国密
+		// if IsGMConfig() {
+		// 	cert, err = createGmSm2Cert(key, &req, cspSigner)
+		// } else {
+		// 	cert, _, err = initca.NewFromSigner(&req, cspSigner)
+		// }
+		cert, err = createGmSm2Cert(key, &req, cspSigner)
 		if err != nil {
 			return nil, errors.WithMessage(err, "Failed to create new CA certificate")
 		}
@@ -495,7 +491,7 @@ func getVerifyOptions(ca *CA) (*x509.VerifyOptions, error) {
 	}
 	rootCert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse root certificate: %s", err)
+		return nil, errors.Errorf("Failed to parse root certificate: %s", err)
 	}
 	rootPool := x509.NewCertPool()
 	rootPool.AddCert(rootCert)
@@ -678,7 +674,7 @@ func (ca *CA) initDB(metrics *db.Metrics) error {
 	}
 
 	// Migrate the database
-	curLevels, err := cadb.CurrentDBLevels(ca.db)
+	curLevels, err := db.CurrentDBLevels(ca.db)
 	if err != nil {
 		return errors.Wrap(err, "Failed to current ca levels")
 	}
@@ -910,7 +906,7 @@ func (ca *CA) CertDBAccessor() *CertDBAccessor {
 }
 
 // DBAccessor returns the registry DB accessor for server
-func (ca *CA) DBAccessor() user.Registry {
+func (ca *CA) DBAccessor() cadbuser.Registry {
 	return ca.registry
 }
 
@@ -1007,13 +1003,13 @@ func (ca *CA) attributeIsTrue(username, attrname string) error {
 // getUserAttrValue returns a user's value for an attribute
 func (ca *CA) getUserAttrValue(username, attrname string) (string, error) {
 	log.Debugf("getUserAttrValue identity=%s, attr=%s", username, attrname)
-	user, err := ca.registry.GetUser(username, []string{attrname})
+	userFromCaDB, err := ca.registry.GetUser(username, []string{attrname})
 	if err != nil {
 		return "", err
 	}
-	attrval, err := user.GetAttribute(attrname)
+	attrval, err := userFromCaDB.GetAttribute(attrname)
 	if err != nil {
-		return "", errors.WithMessage(err, fmt.Sprintf("Failed to get attribute '%s' for user '%s'", attrname, user.GetName()))
+		return "", errors.WithMessage(err, fmt.Sprintf("Failed to get attribute '%s' for user '%s'", attrname, userFromCaDB.GetName()))
 	}
 	log.Debugf("getUserAttrValue identity=%s, name=%s, value=%s", username, attrname, attrval)
 	return attrval.Value, nil
@@ -1178,10 +1174,15 @@ func validateKeySize(cert *x509.Certificate) error {
 	log.Debug("Check that key size is of appropriate length")
 
 	switch cert.PublicKey.(type) {
-	case *rsa.PublicKey:
-		size := cert.PublicKey.(*rsa.PublicKey).N.BitLen()
-		if size < 2048 {
-			return errors.New("Key size is less than 2048 bits")
+	// case *rsa.PublicKey:
+	// 	size := cert.PublicKey.(*rsa.PublicKey).N.BitLen()
+	// 	if size < 2048 {
+	// 		return errors.New("Key size is less than 2048 bits")
+	// 	}
+	case *sm2.PublicKey:
+		size := cert.PublicKey.(*sm2.PublicKey).Params().N.BitLen()
+		if size != 256 {
+			return errors.New("Key size must be 256 bits")
 		}
 	}
 
@@ -1273,7 +1274,7 @@ func (ca *CA) checkConfigLevels() error {
 		return errors.WithMessage(err, "Failed to compare version")
 	}
 	if cmp == -1 {
-		return fmt.Errorf("Configuration file version '%s' is higher than server version '%s'", configVersion, serverVersion)
+		return errors.Errorf("Configuration file version '%s' is higher than server version '%s'", configVersion, serverVersion)
 	}
 	cfg, err := metadata.GetLevels(ca.Config.Version)
 	if err != nil {
@@ -1343,8 +1344,8 @@ func initSigningProfile(spp **config.SigningProfile, expiry time.Duration, isCA 
 	sp.ExtensionWhitelist[attrmgr.AttrOIDString] = true
 }
 
-func getMigrator(driverName string, tx cadb.FabricCATx, curLevels, srvLevels *dbutil.Levels) (cadb.Migrator, error) {
-	var migrator cadb.Migrator
+func getMigrator(driverName string, tx db.FabricCATx, curLevels, srvLevels *dbutil.Levels) (db.Migrator, error) {
+	var migrator db.Migrator
 	switch driverName {
 	case "sqlite3":
 		migrator = sqlite.NewMigrator(tx, curLevels, srvLevels)

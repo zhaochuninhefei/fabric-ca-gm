@@ -28,6 +28,8 @@ import (
 
 	"gitee.com/zhaochuninhefei/gmgo/x509"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	. "gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
@@ -38,8 +40,6 @@ import (
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	libtls "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
-	"github.com/cloudflare/cfssl/certdb"
-	"github.com/cloudflare/cfssl/csr"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/spf13/viper"

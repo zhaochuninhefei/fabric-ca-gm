@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	ldap "gitee.com/zhaochuninhefei/fabric-ca-gm/ldap_v2"
@@ -21,7 +22,6 @@ import (
 	ctls "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"github.com/Knetic/govaluate"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )

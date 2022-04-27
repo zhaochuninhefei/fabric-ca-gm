@@ -26,9 +26,9 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
 
 	// gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
-	"github.com/cloudflare/cfssl/csr"
-	"github.com/cloudflare/cfssl/log"
-	"github.com/cloudflare/cfssl/signer"
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"github.com/stretchr/testify/assert"
 )
 

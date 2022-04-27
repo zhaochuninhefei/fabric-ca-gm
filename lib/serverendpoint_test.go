@@ -15,8 +15,8 @@ import (
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
-	"github.com/cloudflare/cfssl/api"
 	"github.com/stretchr/testify/assert"
 )
 

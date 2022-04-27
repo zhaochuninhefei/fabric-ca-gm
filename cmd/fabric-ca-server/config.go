@@ -12,11 +12,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	calog "gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/metadata"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 
@@ -383,8 +383,8 @@ idemix:
 # crypto library implementation to use
 #############################################################################
 bccsp:
-    default: GM
-    GM:
+    default: SW
+    sw:
         hash: SM3
         security: 256
         filekeystore:

@@ -9,7 +9,8 @@ package lib
 import (
 	"time"
 
-	// "gitee.com/zhaochuninhefei/fabric-config-gm/cfssl/config"
+	// "gitee.com/zhaochuninhefei/cfssl-gm/config"
+	"gitee.com/zhaochuninhefei/cfssl-gm/config"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	dbutil "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
@@ -17,7 +18,6 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/ldap"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
-	"github.com/cloudflare/cfssl/config"
 )
 
 const (

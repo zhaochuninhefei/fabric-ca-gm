@@ -16,13 +16,13 @@ import (
 
 	"gitee.com/zhaochuninhefei/gmgo/x509"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/mocks"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/sqlite"
 	dbutil "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/metricsfakes"
-	"github.com/cloudflare/cfssl/csr"
 	"github.com/stretchr/testify/assert"
 )
 

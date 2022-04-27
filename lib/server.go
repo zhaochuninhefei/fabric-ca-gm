@@ -23,6 +23,8 @@ import (
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/revoke"
 	calog "gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
@@ -34,17 +36,15 @@ import (
 	servermetrics "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/metrics"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/operations"
 	stls "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
-	"gitee.com/zhaochuninhefei/fabric-config-gm/cfssl/revoke"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics"
 	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
-	"github.com/cloudflare/cfssl/log"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"gitee.com/zhaochuninhefei/fabric-config-gm/healthz"
 	ghandlers "gitee.com/zhaochuninhefei/gmgo/handlers"
 	"gitee.com/zhaochuninhefei/gmgo/httpsnoop"
 	gmux "gitee.com/zhaochuninhefei/gmgo/mux"
-	"github.com/cloudflare/cfssl/signer"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
@@ -317,7 +317,7 @@ func (s *Server) initConfig() (err error) {
 	// Make home directory absolute, if not already
 	absoluteHomeDir, err := filepath.Abs(s.HomeDir)
 	if err != nil {
-		return fmt.Errorf("Failed to make server's home directory path absolute: %s", err)
+		return errors.Errorf("Failed to make server's home directory path absolute: %s", err)
 	}
 	s.HomeDir = absoluteHomeDir
 	// Create config if not set
@@ -635,17 +635,17 @@ func (s *Server) listenAndServe() (err error) {
 		// when the key file is specified, it must exist on the file system
 		if c.TLS.KeyFile != "" {
 			if !util.FileExists(c.TLS.KeyFile) {
-				return fmt.Errorf("File specified by 'tls.keyfile' does not exist: %s", c.TLS.KeyFile)
+				return errors.Errorf("File specified by 'tls.keyfile' does not exist: %s", c.TLS.KeyFile)
 			}
 			if !util.FileExists(c.TLS.CertFile) {
-				return fmt.Errorf("File specified by 'tls.certfile' does not exist: %s", c.TLS.CertFile)
+				return errors.Errorf("File specified by 'tls.certfile' does not exist: %s", c.TLS.CertFile)
 			}
 			log.Debugf("TLS Certificate: %s, TLS Key: %s", c.TLS.CertFile, c.TLS.KeyFile)
 		} else if !util.FileExists(c.TLS.CertFile) {
 			// TLS key file is not specified, generate TLS key and cert if they are not already generated
 			err = s.autoGenerateTLSCertificateKey()
 			if err != nil {
-				return fmt.Errorf("Failed to automatically generate TLS certificate and key: %s", err)
+				return errors.Errorf("Failed to automatically generate TLS certificate and key: %s", err)
 			}
 		}
 
@@ -878,7 +878,7 @@ func (s *Server) autoGenerateTLSCertificateKey() error {
 	// Can't use the same CN as the signing certificate CN (default: fabric-ca-server) otherwise no AKI is generated
 	csr, _, err := client.GenCSR(&csrReq, hostname)
 	if err != nil {
-		return fmt.Errorf("Failed to generate CSR: %s", err)
+		return errors.Errorf("Failed to generate CSR: %s", err)
 	}
 
 	// Use the 'tls' profile that will return a certificate with the appropriate extensions
@@ -890,13 +890,13 @@ func (s *Server) autoGenerateTLSCertificateKey() error {
 	// Use default CA to get back signed TLS certificate
 	cert, err := s.CA.enrollSigner.Sign(req)
 	if err != nil {
-		return fmt.Errorf("Failed to generate TLS certificate: %s", err)
+		return errors.Errorf("Failed to generate TLS certificate: %s", err)
 	}
 
 	// Write the TLS certificate to the file system
 	err = ioutil.WriteFile(s.Config.TLS.CertFile, cert, 0644)
 	if err != nil {
-		return fmt.Errorf("Failed to write TLS certificate: %s", err)
+		return errors.Errorf("Failed to write TLS certificate: %s", err)
 	}
 
 	// If c.TLS.Keyfile is specified then print out the key file path. If key file is not provided, then key generation is

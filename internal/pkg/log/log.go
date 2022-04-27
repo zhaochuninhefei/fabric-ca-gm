@@ -9,7 +9,7 @@ package log
 import (
 	"strings"
 
-	"github.com/cloudflare/cfssl/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"github.com/pkg/errors"
 )
 

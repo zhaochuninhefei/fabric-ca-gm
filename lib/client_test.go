@@ -19,6 +19,7 @@ import (
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	. "gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
@@ -26,7 +27,6 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential/x509"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
-	"github.com/cloudflare/cfssl/csr"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )

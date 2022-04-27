@@ -31,10 +31,10 @@ import (
 	"testing"
 	"time"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/config"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
-	"github.com/cloudflare/cfssl/config"
 )
 
 const (

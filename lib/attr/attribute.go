@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 

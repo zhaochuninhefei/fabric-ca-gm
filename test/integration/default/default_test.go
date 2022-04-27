@@ -22,14 +22,14 @@ import (
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
+	"gitee.com/zhaochuninhefei/cfssl-gm/config"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/cmd/fabric-ca-client/command"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/metadata"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
-	"github.com/cloudflare/cfssl/certdb"
-	"github.com/cloudflare/cfssl/config"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )

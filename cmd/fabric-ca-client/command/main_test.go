@@ -27,6 +27,8 @@ import (
 
 	"gitee.com/zhaochuninhefei/gmgo/x509"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
@@ -36,8 +38,6 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/sqlite"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-	"github.com/cloudflare/cfssl/csr"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/stretchr/testify/assert"
 )
 

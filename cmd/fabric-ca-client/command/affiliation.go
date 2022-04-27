@@ -19,9 +19,9 @@ package command
 import (
 	"fmt"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	calog "gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/log"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/spf13/cobra"
 )
 

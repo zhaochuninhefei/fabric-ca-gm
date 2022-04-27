@@ -10,10 +10,10 @@ import (
 	"encoding/pem"
 	"io/ioutil"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 

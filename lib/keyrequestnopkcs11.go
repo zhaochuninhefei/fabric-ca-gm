@@ -18,7 +18,8 @@ import (
 // configuration options
 func GetKeyRequest(cfg *CAConfig) *api.KeyRequest {
 	if cfg.CSP.SwOpts != nil {
-		return &api.KeyRequest{Algo: "ecdsa", Size: cfg.CSP.SwOpts.SecLevel}
+		// 强制使用国密
+		return &api.KeyRequest{Algo: bccsp.SM2, Size: cfg.CSP.SwOpts.SecLevel}
 	}
 	return api.NewKeyRequest()
 }

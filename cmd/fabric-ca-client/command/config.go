@@ -15,13 +15,13 @@ import (
 	"reflect"
 	"strings"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	calog "gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
-	"github.com/cloudflare/cfssl/csr"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 )
 
@@ -150,7 +150,7 @@ csr:
       ST: Anhui
       L: Hefei
       O: gcsoft
-      OU: gcbaas
+      OU:
   hosts:
     - <<<MYHOST>>>
 
@@ -194,8 +194,8 @@ caname:
 # crypto implementation library to use
 #############################################################################
 bccsp:
-    default: GM
-    GM:
+    default: SW
+    sw:
         hash: SM3
         security: 256
         filekeystore:

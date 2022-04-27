@@ -19,6 +19,7 @@ import (
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
@@ -27,7 +28,6 @@ import (
 	dbutil "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	dbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/metricsfakes"
-	"github.com/cloudflare/cfssl/certdb"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )

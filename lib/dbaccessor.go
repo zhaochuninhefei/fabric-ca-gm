@@ -10,16 +10,15 @@ import (
 	"encoding/json"
 	"strings"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	cadbutil "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
-	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/spi"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/kisielk/sqlstruct"
 	"github.com/pkg/errors"
@@ -161,7 +160,7 @@ func (d *Accessor) InsertUser(user *cadbuser.Info) error {
 }
 
 // DeleteUser deletes user from database
-func (d *Accessor) DeleteUser(id string) (user.User, error) {
+func (d *Accessor) DeleteUser(id string) (cadbuser.User, error) {
 	log.Debugf("DB: Delete identity %s", id)
 
 	result, err := d.doTransaction(d.deleteUserTx, id, ocsp.CessationOfOperation) // 5 (cessationofoperation) reason for certificate revocation
@@ -261,7 +260,7 @@ func (d *Accessor) UpdateUser(user *cadbuser.Info, updatePass bool) error {
 }
 
 // GetUser gets user from database
-func (d *Accessor) GetUser(id string, attrs []string) (user.User, error) {
+func (d *Accessor) GetUser(id string, attrs []string) (cadbuser.User, error) {
 	log.Debugf("DB: Getting identity %s", id)
 
 	err := d.checkDB()
@@ -314,7 +313,7 @@ func (d *Accessor) InsertAffiliation(name string, prekey string, level int) erro
 // DeleteAffiliation deletes affiliation from database. Using the force option with identity removal allowed
 // this will also delete the identities associated with removed affiliations, and also delete the certificates
 // for the identities removed
-func (d *Accessor) DeleteAffiliation(name string, force, identityRemoval, isRegistrar bool) (*user.DbTxResult, error) {
+func (d *Accessor) DeleteAffiliation(name string, force, identityRemoval, isRegistrar bool) (*cadbuser.DbTxResult, error) {
 	log.Debugf("DB: Delete affiliation %s", name)
 
 	_, err := d.GetAffiliation(name)
@@ -327,7 +326,7 @@ func (d *Accessor) DeleteAffiliation(name string, force, identityRemoval, isRegi
 		return nil, err
 	}
 
-	deletedInfo := result.(*user.DbTxResult)
+	deletedInfo := result.(*cadbuser.DbTxResult)
 
 	return deletedInfo, nil
 }
@@ -451,7 +450,7 @@ func (d *Accessor) GetAffiliation(name string) (spi.Affiliation, error) {
 }
 
 // GetAffiliationTree returns the requested affiliation and affiliations below
-func (d *Accessor) GetAffiliationTree(name string) (*user.DbTxResult, error) {
+func (d *Accessor) GetAffiliationTree(name string) (*cadbuser.DbTxResult, error) {
 	log.Debugf("DB: Get affiliation tree for '%s'", name)
 
 	if name != "" {
@@ -466,7 +465,7 @@ func (d *Accessor) GetAffiliationTree(name string) (*user.DbTxResult, error) {
 		return nil, caerrors.NewHTTPErr(409, caerrors.ErrGettingAffiliation, "Failed to complete database transaction: %s", err)
 	}
 
-	getResult := result.(*user.DbTxResult)
+	getResult := result.(*cadbuser.DbTxResult)
 
 	return getResult, nil
 }
@@ -502,9 +501,9 @@ func (d *Accessor) getAffiliationTreeTx(tx *sqlx.Tx, args ...interface{}) (inter
 
 // GetUserLessThanLevel returns all identities that are less than the level specified
 // Otherwise, returns no users if requested level is zero
-func (d *Accessor) GetUserLessThanLevel(level int) ([]user.User, error) {
+func (d *Accessor) GetUserLessThanLevel(level int) ([]cadbuser.User, error) {
 	if level == 0 {
-		return []user.User{}, nil
+		return []cadbuser.User{}, nil
 	}
 
 	rows, err := d.db.Queryx("GetUserLessThanLevel", d.db.Rebind("SELECT * FROM users WHERE (level < ?) OR (level IS NULL)"), level)
@@ -512,7 +511,7 @@ func (d *Accessor) GetUserLessThanLevel(level int) ([]user.User, error) {
 		return nil, errors.Wrap(err, "Failed to get identities that need to be updated")
 	}
 
-	allUsers := []user.User{}
+	allUsers := []cadbuser.User{}
 
 	for rows.Next() {
 		var user cadbuser.Record
@@ -610,7 +609,7 @@ func (d *Accessor) GetFilteredUsers(affiliation, types string) (*sqlx.Rows, erro
 
 // ModifyAffiliation renames the affiliation and updates all identities to use the new affiliation depending on
 // the value of the "force" parameter
-func (d *Accessor) ModifyAffiliation(oldAffiliation, newAffiliation string, force, isRegistrar bool) (*user.DbTxResult, error) {
+func (d *Accessor) ModifyAffiliation(oldAffiliation, newAffiliation string, force, isRegistrar bool) (*cadbuser.DbTxResult, error) {
 	log.Debugf("DB: Modify affiliation from '%s' to '%s'", oldAffiliation, newAffiliation)
 	err := d.checkDB()
 	if err != nil {
@@ -634,7 +633,7 @@ func (d *Accessor) ModifyAffiliation(oldAffiliation, newAffiliation string, forc
 		return nil, err
 	}
 
-	modifiedInfo := result.(*user.DbTxResult)
+	modifiedInfo := result.(*cadbuser.DbTxResult)
 
 	return modifiedInfo, nil
 }
@@ -699,7 +698,7 @@ func (d *Accessor) modifyAffiliationTx(tx *sqlx.Tx, args ...interface{}) (interf
 					userAff := cadbuser.GetAffiliation(user)                              // Get the current affiliation
 					newAff := strings.Replace(userAff, oldAffiliation, newAffiliation, 1) // Replace old affiliation with new affiliation
 					userAttrs := cadbuser.GetNewAttributes(currentAttrs, []api.Attribute{ // Generate the new set of attributes for user
-						api.Attribute{
+						{
 							Name:  attr.Affiliation,
 							Value: newAff,
 						},
@@ -802,9 +801,9 @@ func (d *Accessor) doTransaction(doit func(tx *sqlx.Tx, args ...interface{}) (in
 }
 
 // Returns the identities and affiliations that were modified
-func (d *Accessor) getResult(ids []cadbuser.Record, affs []db.AffiliationRecord) *user.DbTxResult {
+func (d *Accessor) getResult(ids []cadbuser.Record, affs []db.AffiliationRecord) *cadbuser.DbTxResult {
 	// Collect all the identities that were modified
-	identities := []user.User{}
+	identities := []cadbuser.User{}
 	for _, id := range ids {
 		identities = append(identities, cadbuser.New(&id, d.db))
 	}
@@ -816,7 +815,7 @@ func (d *Accessor) getResult(ids []cadbuser.Record, affs []db.AffiliationRecord)
 		affiliations = append(affiliations, newAff)
 	}
 
-	return &user.DbTxResult{
+	return &cadbuser.DbTxResult{
 		Affiliations: affiliations,
 		Identities:   identities,
 	}

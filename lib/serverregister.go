@@ -10,12 +10,12 @@ import (
 	"fmt"
 	"net/url"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-	"github.com/cloudflare/cfssl/log"
 
 	"github.com/pkg/errors"
 )
@@ -172,7 +172,7 @@ func registerUserID(req *api.RegistrationRequest, ca *CA) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+	// fmt.Printf("===== lib/serverregister.go registerUserID:注册用户成功 Name:%s Type:%s\n", insert.Name, insert.Type)
 	return req.Secret, nil
 }
 

@@ -15,16 +15,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
-
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
-	certinfo "gitee.com/zhaochuninhefei/gmgo/x509"
-	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
-	"github.com/cloudflare/cfssl/log"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
@@ -50,10 +46,9 @@ func BytesToX509Cert(bytes []byte) (*x509.Certificate, error) {
 	return cert, err
 }
 
-// TODO 国密改造
 // LoadPEMCertPool loads a pool of PEM certificates from list of files
-func LoadPEMCertPool(certFiles []string) (*gx509.CertPool, error) {
-	certPool := gx509.NewCertPool()
+func LoadPEMCertPool(certFiles []string) (*x509.CertPool, error) {
+	certPool := x509.NewCertPool()
 
 	if len(certFiles) > 0 {
 		for _, cert := range certFiles {
@@ -198,11 +193,11 @@ func (cd *CertificateDecoder) CertificateDecoder(decoder *json.Decoder) error {
 			return err
 		}
 	}
-	result, err := certinfo.CertificateText(certificate)
+	result, err := x509.CertificateText(certificate)
 	if err != nil {
 		return err
 	}
-	fmt.Printf(result)
+	log.Infof("===== lib/util.go CertificateDecoder 证书内容: \n%s\n", result)
 	return nil
 }
 
@@ -238,59 +233,62 @@ func (cd *CertificateDecoder) storeCert(enrollmentID, storePath string, cert []b
 	return nil
 }
 
-// TODO 国密改造
-// SM2证书请求 转换 X509 证书请求
-func ParseSm2CertificateRequest2X509(sm2req *gx509.CertificateRequest) *x509.CertificateRequest {
-	x509req := &x509.CertificateRequest{
-		Raw:                      sm2req.Raw,                      // Complete ASN.1 DER content (CSR, signature algorithm and signature).
-		RawTBSCertificateRequest: sm2req.RawTBSCertificateRequest, // Certificate request info part of raw ASN.1 DER content.
-		RawSubjectPublicKeyInfo:  sm2req.RawSubjectPublicKeyInfo,  // DER encoded SubjectPublicKeyInfo.
-		RawSubject:               sm2req.RawSubject,               // DER encoded Subject.
+// // SM2证书请求 转换 X509 证书请求
+// func ParseSm2CertificateRequest2X509(sm2req *gx509.CertificateRequest) *x509.CertificateRequest {
+// 	x509req := &x509.CertificateRequest{
+// 		Raw:                      sm2req.Raw,                      // Complete ASN.1 DER content (CSR, signature algorithm and signature).
+// 		RawTBSCertificateRequest: sm2req.RawTBSCertificateRequest, // Certificate request info part of raw ASN.1 DER content.
+// 		RawSubjectPublicKeyInfo:  sm2req.RawSubjectPublicKeyInfo,  // DER encoded SubjectPublicKeyInfo.
+// 		RawSubject:               sm2req.RawSubject,               // DER encoded Subject.
 
-		Version:            sm2req.Version,
-		Signature:          sm2req.Signature,
-		SignatureAlgorithm: x509.SignatureAlgorithm(sm2req.SignatureAlgorithm),
+// 		Version:            sm2req.Version,
+// 		Signature:          sm2req.Signature,
+// 		SignatureAlgorithm: x509.SignatureAlgorithm(sm2req.SignatureAlgorithm),
 
-		PublicKeyAlgorithm: x509.PublicKeyAlgorithm(sm2req.PublicKeyAlgorithm),
-		PublicKey:          sm2req.PublicKey,
+// 		PublicKeyAlgorithm: x509.PublicKeyAlgorithm(sm2req.PublicKeyAlgorithm),
+// 		PublicKey:          sm2req.PublicKey,
 
-		Subject: sm2req.Subject,
+// 		Subject: sm2req.Subject,
 
-		// Attributes is the dried husk of a bug and shouldn't be used.
-		Attributes: sm2req.Attributes,
+// 		// Attributes is the dried husk of a bug and shouldn't be used.
+// 		Attributes: sm2req.Attributes,
 
-		// Extensions contains raw X.509 extensions. When parsing CSRs, this
-		// can be used to extract extensions that are not parsed by this
-		// package.
-		Extensions: sm2req.Extensions,
+// 		// Extensions contains raw X.509 extensions. When parsing CSRs, this
+// 		// can be used to extract extensions that are not parsed by this
+// 		// package.
+// 		Extensions: sm2req.Extensions,
 
-		// ExtraExtensions contains extensions to be copied, raw, into any
-		// marshaled CSR. Values override any extensions that would otherwise
-		// be produced based on the other fields but are overridden by any
-		// extensions specified in Attributes.
-		//
-		// The ExtraExtensions field is not populated when parsing CSRs, see
-		// Extensions.
-		ExtraExtensions: sm2req.ExtraExtensions,
+// 		// ExtraExtensions contains extensions to be copied, raw, into any
+// 		// marshaled CSR. Values override any extensions that would otherwise
+// 		// be produced based on the other fields but are overridden by any
+// 		// extensions specified in Attributes.
+// 		//
+// 		// The ExtraExtensions field is not populated when parsing CSRs, see
+// 		// Extensions.
+// 		ExtraExtensions: sm2req.ExtraExtensions,
 
-		// Subject Alternate Name values.
-		DNSNames:       sm2req.DNSNames,
-		EmailAddresses: sm2req.EmailAddresses,
-		IPAddresses:    sm2req.IPAddresses,
-	}
-	return x509req
-}
+// 		// Subject Alternate Name values.
+// 		DNSNames:       sm2req.DNSNames,
+// 		EmailAddresses: sm2req.EmailAddresses,
+// 		IPAddresses:    sm2req.IPAddresses,
+// 	}
+// 	return x509req
+// }
 
 var providerName string
 
 func IsGMConfig() bool {
+	// 目前强制使用国密
 	if providerName == "" {
-		return false
+		return true
+	}
+	if strings.ToUpper(providerName) == "SW" {
+		return true
 	}
 	if strings.ToUpper(providerName) == "GM" {
 		return true
 	}
-	return false
+	return true
 }
 
 func SetProviderName(name string) {

@@ -18,6 +18,8 @@ import (
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/mocks"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/certificaterequest"
@@ -25,8 +27,6 @@ import (
 	dbutil "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/metricsfakes"
-	"github.com/cloudflare/cfssl/certdb"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"

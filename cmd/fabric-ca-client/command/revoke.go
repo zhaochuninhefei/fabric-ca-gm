@@ -19,10 +19,10 @@ package command
 import (
 	"path/filepath"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

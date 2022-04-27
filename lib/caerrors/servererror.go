@@ -13,8 +13,8 @@ import (
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
-	cfsslapi "github.com/cloudflare/cfssl/api"
-	"github.com/cloudflare/cfssl/log"
+	cfsslapi "gitee.com/zhaochuninhefei/cfssl-gm/api"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"github.com/pkg/errors"
 )
 

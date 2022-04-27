@@ -12,14 +12,13 @@ import (
 	"strings"
 	"time"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
+	certsql "gitee.com/zhaochuninhefei/cfssl-gm/certdb/sql"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	cr "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/certificaterequest"
-	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	cadb "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	dbutil "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
-	"github.com/cloudflare/cfssl/certdb"
-	certsql "github.com/cloudflare/cfssl/certdb/sql"
-	"github.com/cloudflare/cfssl/log"
 	"github.com/jmoiron/sqlx"
 	"github.com/kisielk/sqlstruct"
 	"github.com/pkg/errors"
@@ -68,7 +67,7 @@ func (d *CertDBAccessor) checkDB() error {
 }
 
 // SetDB changes the underlying sql.DB object Accessor is manipulating.
-func (d *CertDBAccessor) SetDB(db *db.DB) {
+func (d *CertDBAccessor) SetDB(db *cadb.DB) {
 	d.db = db
 }
 
@@ -94,7 +93,7 @@ func (d *CertDBAccessor) InsertCertificate(cr certdb.CertificateRecord) error {
 
 	log.Debugf("Saved serial number as hex %s", serial)
 
-	record := &db.CertRecord{
+	record := &cadb.CertRecord{
 		ID:    id,
 		Level: d.level,
 		CertificateRecord: certdb.CertificateRecord{
@@ -129,14 +128,14 @@ func (d *CertDBAccessor) InsertCertificate(cr certdb.CertificateRecord) error {
 }
 
 // GetCertificatesByID gets a CertificateRecord indexed by id.
-func (d *CertDBAccessor) GetCertificatesByID(id string) (crs []db.CertRecord, err error) {
+func (d *CertDBAccessor) GetCertificatesByID(id string) (crs []cadb.CertRecord, err error) {
 	log.Debugf("DB: Get certificate by ID (%s)", id)
 	err = d.checkDB()
 	if err != nil {
 		return nil, err
 	}
 
-	err = d.db.Select("GetCertificatesByID", &crs, fmt.Sprintf(d.db.Rebind(selectSQLbyID), sqlstruct.Columns(db.CertRecord{})), id)
+	err = d.db.Select("GetCertificatesByID", &crs, fmt.Sprintf(d.db.Rebind(selectSQLbyID), sqlstruct.Columns(cadb.CertRecord{})), id)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +155,7 @@ func (d *CertDBAccessor) GetCertificate(serial, aki string) (crs []certdb.Certif
 }
 
 // GetCertificateWithID gets a CertificateRecord indexed by serial and returns user too.
-func (d *CertDBAccessor) GetCertificateWithID(serial, aki string) (crs db.CertRecord, err error) {
+func (d *CertDBAccessor) GetCertificateWithID(serial, aki string) (crs cadb.CertRecord, err error) {
 	log.Debugf("DB: Get certificate by serial (%s) and aki (%s)", serial, aki)
 
 	err = d.checkDB()
@@ -164,7 +163,7 @@ func (d *CertDBAccessor) GetCertificateWithID(serial, aki string) (crs db.CertRe
 		return crs, err
 	}
 
-	err = d.db.Get("GetCertificatesByID", &crs, fmt.Sprintf(d.db.Rebind(selectSQL), sqlstruct.Columns(db.CertRecord{})), serial, aki)
+	err = d.db.Get("GetCertificatesByID", &crs, fmt.Sprintf(d.db.Rebind(selectSQL), sqlstruct.Columns(cadb.CertRecord{})), serial, aki)
 	if err != nil {
 		return crs, dbutil.GetError(err, "Certificate")
 	}
@@ -229,17 +228,17 @@ func (d *CertDBAccessor) GetRevokedAndUnexpiredCertificatesByLabel(label string)
 	return crs, err
 }
 
-// TODO 添加 GetRevokedAndUnexpiredCertificatesByLabelSelectColumns
-func (d *CertDBAccessor) GetRevokedAndUnexpiredCertificatesByLabelSelectColumns(label string) ([]certdb.CertificateRecord, error) {
-	crs, err := d.accessor.GetRevokedAndUnexpiredCertificatesByLabelSelectColumns(label)
-	if err != nil {
-		return nil, err
-	}
-	return crs, err
-}
+// // TODO 添加 GetRevokedAndUnexpiredCertificatesByLabelSelectColumns
+// func (d *CertDBAccessor) GetRevokedAndUnexpiredCertificatesByLabelSelectColumns(label string) ([]certdb.CertificateRecord, error) {
+// 	crs, err := d.accessor.GetRevokedAndUnexpiredCertificatesByLabelSelectColumns(label)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return crs, err
+// }
 
 // RevokeCertificatesByID updates all certificates for a given ID and marks them revoked.
-func (d *CertDBAccessor) RevokeCertificatesByID(id string, reasonCode int) (crs []db.CertRecord, err error) {
+func (d *CertDBAccessor) RevokeCertificatesByID(id string, reasonCode int) (crs []cadb.CertRecord, err error) {
 	log.Debugf("DB: Revoke certificate by ID (%s)", id)
 
 	err = d.checkDB()
@@ -247,7 +246,7 @@ func (d *CertDBAccessor) RevokeCertificatesByID(id string, reasonCode int) (crs 
 		return nil, err
 	}
 
-	var record = new(db.CertRecord)
+	var record = new(cadb.CertRecord)
 	record.ID = id
 	record.Reason = reasonCode
 

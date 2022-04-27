@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cloudflare/cfssl/log"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	logging "github.com/op/go-logging"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"

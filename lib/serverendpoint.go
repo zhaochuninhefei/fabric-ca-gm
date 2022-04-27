@@ -11,9 +11,9 @@ import (
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 
+	"gitee.com/zhaochuninhefei/cfssl-gm/api"
+	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
-	"github.com/cloudflare/cfssl/api"
-	"github.com/cloudflare/cfssl/log"
 )
 
 // serverEndpoint represents a particular endpoint (e.g. to "/api/v1/enroll")
