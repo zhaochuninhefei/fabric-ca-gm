@@ -713,7 +713,7 @@ csr:
     - fabricCa.hyperledger.example.com
     - localhost
   ca:
-    expiry: 131400h
+    expiry: 876000h
     pathlength: 1
 bccsp:
   default: SW

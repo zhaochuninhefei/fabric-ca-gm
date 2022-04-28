@@ -78,8 +78,9 @@ gitee.com/zhaochuninhefei/fabric-gm v0.0.4 h1:0qC0YVfixKImlltJb+juJ4Kr5SpbKBsUMb
 gitee.com/zhaochuninhefei/fabric-gm v0.0.4/go.mod h1:sTb5+Uj1M0tTdGZEMIicdlc1HidfSIttysa1Uc10WIE=
 gitee.com/zhaochuninhefei/fabric-protos-go-gm v0.0.1/go.mod h1:cAEwQ9OO7YY3kJ4hqkLVhtk8j+y0etmvll3ZwOf044E=
 gitee.com/zhaochuninhefei/gmgo v0.0.8/go.mod h1:toMA93O2xt6VLnd7An85Iy7+RSJ4jhf1sVOBTU8zZ50=
-gitee.com/zhaochuninhefei/gmgo v0.0.10 h1:gfvu2v8J/3ADYT01d1APsILMlW57dZIqF8zodYZ3t34=
 gitee.com/zhaochuninhefei/gmgo v0.0.10/go.mod h1:toMA93O2xt6VLnd7An85Iy7+RSJ4jhf1sVOBTU8zZ50=
+gitee.com/zhaochuninhefei/gmgo v0.0.11 h1:7UzApFwakpu1fkpQexQkGFwdXZ3Iyye/auvllRSxldE=
+gitee.com/zhaochuninhefei/gmgo v0.0.11/go.mod h1:toMA93O2xt6VLnd7An85Iy7+RSJ4jhf1sVOBTU8zZ50=
 gitee.com/zhaochuninhefei/saramagm v0.0.4/go.mod h1:1q/wPdfD1bLmuRNROZFTRPTYTDfUkWTanEEZbhHjRi0=
 github.com/AndreasBriese/bbloom v0.0.0-20190306092124-e2d15f34fcf9/go.mod h1:bOvUY6CB00SOBii9/FifXqc0awNKxLFCL/+pkDPuyl8=
 github.com/Azure/azure-amqp-common-go/v2 v2.1.0/go.mod h1:R8rea+gJRuJR6QxTir/XuEd+YuKoUiazDC/N96FiDEU=

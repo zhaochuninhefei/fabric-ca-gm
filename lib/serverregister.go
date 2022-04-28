@@ -32,6 +32,7 @@ func newRegisterEndpoint(s *Server) *serverEndpoint {
 
 // Handle a register request
 func registerHandler(ctx *serverRequestContextImpl) (interface{}, error) {
+	log.Debug("===== lib/serverregister.go registerHandler 开始处理register请求")
 	ca, err := ctx.GetCA()
 	if err != nil {
 		return nil, err
@@ -51,7 +52,7 @@ func register(ctx ServerRequestContext, ca *CA) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Received registration request from %s: %v", callerID, &req)
+	log.Debugf("===== lib/serverregister.go register 由 %s 发起请求注册用户: %v", callerID, &req)
 	if ctx.IsLDAPEnabled() {
 		return nil, caerrors.NewHTTPErr(403, caerrors.ErrInvalidLDAPAction, "Registration is not supported when using LDAP")
 	}
@@ -139,7 +140,7 @@ func registerUserID(req *api.RegistrationRequest, ca *CA) (string, error) {
 	if req.Secret == "" {
 		req.Secret = util.RandomString(12)
 	}
-
+	// 获取该注册用户能拉取证书的最大次数
 	req.MaxEnrollments, err = getMaxEnrollments(req.MaxEnrollments, ca.Config.Registry.MaxEnrollments)
 	if err != nil {
 		return "", err
@@ -172,7 +173,7 @@ func registerUserID(req *api.RegistrationRequest, ca *CA) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// fmt.Printf("===== lib/serverregister.go registerUserID:注册用户成功 Name:%s Type:%s\n", insert.Name, insert.Type)
+	log.Debugf("===== lib/serverregister.go registerUserID:注册用户成功 Name:%s Type:%s\n", insert.Name, insert.Type)
 	return req.Secret, nil
 }
 

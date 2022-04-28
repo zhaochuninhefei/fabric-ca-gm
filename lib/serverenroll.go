@@ -70,6 +70,7 @@ func newReenrollEndpoint(s *Server) *serverEndpoint {
 
 // Handle an enroll request, guarded by basic authentication
 func enrollHandler(ctx *serverRequestContextImpl) (interface{}, error) {
+	log.Debug("===== lib/serverenroll.go enrollHandler ca服务端开始处理enroll请求")
 	id, err := ctx.BasicAuthentication()
 	if err != nil {
 		return nil, err
@@ -97,8 +98,7 @@ func reenrollHandler(ctx *serverRequestContextImpl) (interface{}, error) {
 
 // Handle the common processing for enroll and reenroll
 func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error) {
-	// fmt.Printf("===== lib/serverenroll.go handleEnroll: ca服务端开始处理证书拉取请求\n")
-	// fmt.Printf("===== lib/serverenroll.go handleEnroll: 请求证书的用户信息 Name:%s Type:%s\n", ctx.ui.GetName(), ctx.ui.GetType())
+	log.Debugf("===== lib/serverenroll.go handleEnroll: 请求证书的用户信息 Name:%s Type:%s\n", ctx.ui.GetName(), ctx.ui.GetType())
 	var req api.EnrollmentRequestNet
 	err := ctx.ReadBody(&req)
 	if err != nil {
@@ -109,8 +109,9 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 	if err != nil {
 		return nil, err
 	}
-	// Set expiry based on the requested CA profile else use expiry from the default
-	// profile
+	// Set expiry based on the requested CA profile else use expiry from the default profile
+	// 从ca配置中读取 ca.Config.Signing.Default : signing.default
+	// log.Debugf("===== lib/serverenroll.go handleEnroll before req.NotAfter : %s , req.SignRequest.NotAfter: %s", req.NotAfter.Format(time.RFC3339), req.SignRequest.NotAfter.Format(time.RFC3339))
 	profile := ca.Config.Signing.Default
 	if req.Profile != "" && ca.Config.Signing != nil &&
 		ca.Config.Signing.Profiles != nil && ca.Config.Signing.Profiles[req.Profile] != nil {
@@ -137,9 +138,11 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 			req.NotBefore, notBefore)
 		req.NotBefore = notBefore
 	}
+	// log.Debugf("===== lib/serverenroll.go handleEnroll after req.NotAfter : %s , req.SignRequest.NotAfter: %s", req.NotAfter.Format(time.RFC3339), req.SignRequest.NotAfter.Format(time.RFC3339))
 
 	// Process the sign request from the caller.
 	// Make sure it is authorized and do any swizzling appropriate to the request.
+	// 内部使用caller补充了OU信息
 	err = processSignRequest(id, &req.SignRequest, ca, ctx)
 	if err != nil {
 		return nil, err
@@ -156,7 +159,7 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 	}
 	// Sign the certificate
 	// TODO 国密改造
-	// cert, err := ca.enrollSigner.Sign(req.SignRequest)
+	// cert1, err1 := ca.enrollSigner.Sign(req.SignRequest)
 	// fmt.Printf("===== lib/serverenroll.go handleEnroll: 签名前确认请求数据 req.SignRequest.Subject: %#v\n", req.SignRequest.Subject)
 	cert, err := signCert(req.SignRequest, ca)
 	if err != nil {
@@ -171,6 +174,7 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 		return nil, err
 	}
 	// Success
+	log.Debugf("===== lib/serverenroll.go handleEnroll: 用户:%s (Type:%s)的证书拉取请求成功", ctx.ui.GetName(), ctx.ui.GetType())
 	return resp, nil
 }
 

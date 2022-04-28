@@ -99,7 +99,7 @@ func (ctx *serverRequestContextImpl) BasicAuthentication() (string, error) {
 		return "", err
 	}
 	// Error if max enrollments is disabled for this CA
-	log.Debugf("ca.Config: %+v", ca.Config)
+	// log.Debugf("ca.Config: %+v", ca.Config)
 	caMaxEnrollments := ca.Config.Registry.MaxEnrollments
 	if caMaxEnrollments == 0 {
 		return "", caerrors.NewAuthenticationErr(caerrors.ErrEnrollDisabled, "Enroll is disabled")
@@ -131,7 +131,7 @@ func (ctx *serverRequestContextImpl) BasicAuthentication() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// fmt.Printf("===== lib/serverrequestcontext.go BasicAuthentication ctx.caller Name:%s Type:%s\n", ctx.caller.GetName(), ctx.caller.GetType())
+	log.Debugf("===== lib/serverrequestcontext.go BasicAuthentication caller:(Name:%s , Type:%s) ui:((Name:%s , Type:%s) enrollmentID:%s", ctx.caller.GetName(), ctx.caller.GetType(), ctx.ui.GetName(), ctx.ui.GetType(), username)
 	// Return the username
 	return username, nil
 }

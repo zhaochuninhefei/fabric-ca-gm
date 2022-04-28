@@ -38,13 +38,18 @@ func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	if block.Type != "NEW CERTIFICATE REQUEST" && block.Type != "CERTIFICATE REQUEST" {
 		return nil, errors.Errorf("not a csr")
 	}
-	// 生成证书模板,由于之前转换的block中丢掉了req.Subject，这里需要在生成模板之后补充req.Subject中的OU信息。
-	template, err := parseCertificateRequestWithSubject(block.Bytes, *req.Subject)
+	// 基于req.Request生成证书模板
+	template, err := parseCertificateRequest(block.Bytes)
 	if err != nil {
 		log.Errorf("===== lib/gmca.go signCert: parseCertificateRequest error:[%s]", err)
 		return nil, err
 	}
-
+	// 补充OU与证书期限
+	err = fillOUAndNotAfter(template, req)
+	if err != nil {
+		log.Errorf("===== lib/gmca.go signCert: fillOUAndNotAfter error:[%s]", err)
+		return nil, err
+	}
 	certfile := ca.Config.CA.Certfile
 	//certfile := req.Profile
 	// log.Infof("===== lib/gmca.go signCert:certifle = %s", certfile)
@@ -93,35 +98,39 @@ func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	return
 }
 
-//生成证书
-func createGmSm2Cert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Signer) (cert []byte, err error) {
-	// log.Infof("===== lib/gmca.go createGmSm2Cert key :%T", key)
+// 生成自签名证书
+func createRootCACert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Signer) (cert []byte, err error) {
+	log.Infof("===== lib/gmca.go createRootCACert key :%T", key)
 
 	csrPEM, err := generate(priv, req, key)
 	if err != nil {
-		log.Errorf("===== lib/gmca.go createGmSm2Cert generate error:%s", err)
+		log.Errorf("===== lib/gmca.go createRootCACert generate error:%s", err)
 	}
 	block, _ := pem.Decode(csrPEM)
 	if block == nil {
-		return nil, errors.Errorf("===== lib/gmca.go createGmSm2Cert sm2 csr DecodeFailed")
+		return nil, errors.Errorf("===== lib/gmca.go createRootCACert sm2 csr DecodeFailed")
 	}
 
 	if block.Type != "NEW CERTIFICATE REQUEST" && block.Type != "CERTIFICATE REQUEST" {
-		return nil, errors.Errorf("===== lib/gmca.go createGmSm2Cert sm2 not a csr")
+		return nil, errors.Errorf("===== lib/gmca.go createRootCACert sm2 not a csr")
 	}
+	// TODO 需要补充证书期限信息
 	sm2Template, err := parseCertificateRequest(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
-	// log.Infof("===== lib/gmca.go createGmSm2Cert key is %T   ---%T", sm2Template.PublicKey, sm2Template)
+	sm2Template.NotBefore = time.Now()
+	// 作为CA自签名的根证书，使用期限最长的 defaultRootCACertificateExpiration
+	sm2Template.NotAfter = time.Now().Add(parseDuration(defaultRootCACertificateExpiration))
+	// log.Infof("===== lib/gmca.go createRootCACert key is %T   ---%T", sm2Template.PublicKey, sm2Template)
 	cert, err = sw.CreateCertificateToMem(sm2Template, sm2Template, key)
 	return
 }
 
 // 补充OU信息
-func parseCertificateRequestWithSubject(csrBytes []byte, subject signer.Subject) (template *x509.Certificate, err error) {
-	template, err = parseCertificateRequest(csrBytes)
-	log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject before template.Subject: %#v , subject: %#v", template.Subject, subject)
+func fillOUAndNotAfter(template *x509.Certificate, req signer.SignRequest) error {
+	subject := req.Subject
+	// log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject before template.Subject: %#v , subject: %#v", template.Subject, subject)
 	if len(subject.Names) > 0 {
 		if len(template.Subject.OrganizationalUnit) == 0 {
 			var tmpOUs []string
@@ -152,8 +161,16 @@ func parseCertificateRequestWithSubject(csrBytes []byte, subject signer.Subject)
 			template.Subject.OrganizationalUnit = tmpOUs
 		}
 	}
-	log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject after template.Subject: %#v , subject: %#v", template.Subject, subject)
-	return
+	// log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject after template.Subject: %#v , subject: %#v", template.Subject, subject)
+	template.NotBefore = time.Now()
+	// log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject req.NotAfter: %s", req.NotAfter.Format(time.RFC3339))
+	if req.NotAfter.IsZero() {
+		template.NotAfter = time.Now().Add(defaultIssuedCertificateExpiration)
+	} else {
+		template.NotAfter = req.NotAfter
+	}
+	// log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject template.NotAfter: %s", template.NotAfter.Format(time.RFC3339))
+	return nil
 }
 
 // 证书请求转换成证书  参数为  block .Bytes
@@ -166,6 +183,7 @@ func parseCertificateRequest(csrBytes []byte) (template *x509.Certificate, err e
 	if err != nil {
 		return nil, err
 	}
+	// log.Infof("===== lib/gmca.go parseCertificateRequest: csrv :%#v", csrv)
 	template = &x509.Certificate{
 		Subject:            csrv.Subject,
 		PublicKeyAlgorithm: csrv.PublicKeyAlgorithm,
@@ -177,9 +195,6 @@ func parseCertificateRequest(csrBytes []byte) (template *x509.Certificate, err e
 	}
 	// fmt.Printf("===== lib/gmca.go parseCertificateRequest:algorithn = %v, %v\n", template.PublicKeyAlgorithm, template.SignatureAlgorithm)
 	// log.Infof("===== lib/gmca.go parseCertificateRequest:publicKey :%T", template.PublicKey)
-	// 固定有效期间: 100000小时,约11.4年
-	template.NotBefore = time.Now()
-	template.NotAfter = time.Now().Add(time.Hour * 100000)
 
 	for _, val := range csrv.Extensions {
 		// Check the CSR for the X.509 BasicConstraints (RFC 5280, 4.2.1.9)

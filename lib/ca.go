@@ -54,12 +54,15 @@ const (
 )
 
 var (
-	// Default root CA certificate expiration is 15 years (in hours).
-	defaultRootCACertificateExpiration = "131400h"
-	// Default intermediate CA certificate expiration is 5 years (in hours).
-	defaultIntermediateCACertificateExpiration = parseDuration("43800h")
-	// Default issued certificate expiration is 1 year (in hours).
-	defaultIssuedCertificateExpiration = parseDuration("8760h")
+	// Default root CA certificate expiration is 15 years (in hours). 改为100年
+	// defaultRootCACertificateExpiration = "131400h"
+	defaultRootCACertificateExpiration = "876000h"
+	// Default intermediate CA certificate expiration is 5 years (in hours). 改为80年
+	// defaultIntermediateCACertificateExpiration = parseDuration("43800h")
+	defaultIntermediateCACertificateExpiration = parseDuration("700800h")
+	// Default issued certificate expiration is 1 year (in hours). 改为50年
+	// defaultIssuedCertificateExpiration = parseDuration("8760h")
+	defaultIssuedCertificateExpiration = parseDuration("438000h")
 )
 
 // CA represents a certificate authority which signs, issues and revokes certificates
@@ -182,8 +185,9 @@ func (ca *CA) init(renew bool) (err error) {
 }
 
 // Initialize the CA's key material
+// 初始化 CA 的密钥材料
 func (ca *CA) initKeyMaterial(renew bool) error {
-	log.Debug("Initialize key material")
+	log.Debug("===== lib/ca.go initKeyMaterial Initialize key material")
 
 	// Make the path names absolute in the config
 	err := ca.makeFileNamesAbsolute()
@@ -240,7 +244,7 @@ func (ca *CA) initKeyMaterial(renew bool) error {
 		log.Warning(caerrors.NewServerError(caerrors.ErrCACertFileNotFound, "The specified CA certificate file %s does not exist", certFile))
 	}
 
-	// Get the CA cert
+	// 获取CA根证书
 	cert, err := ca.getCACert()
 	if err != nil {
 		return err
@@ -250,9 +254,9 @@ func (ca *CA) initKeyMaterial(renew bool) error {
 	if err != nil {
 		return errors.Wrap(err, "Failed to store certificate")
 	}
-	log.Infof("The CA key and certificate were generated for CA %s", ca.Config.CA.Name)
-	log.Infof("The key was stored by BCCSP provider '%s'", ca.Config.CSP.ProviderName)
-	log.Infof("The certificate is at: %s", certFile)
+	log.Infof("===== lib/ca.go initKeyMaterial The CA key and certificate were generated for CA %s", ca.Config.CA.Name)
+	log.Infof("===== lib/ca.go initKeyMaterial The key was stored by BCCSP provider '%s'", ca.Config.CSP.ProviderName)
+	log.Infof("===== lib/ca.go initKeyMaterial The certificate is at: %s", certFile)
 
 	return nil
 }
@@ -262,7 +266,7 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 	if ca.Config.Intermediate.ParentServer.URL != "" {
 		// This is an intermediate CA, so call the parent fabric-ca-server
 		// to get the cert
-		log.Debugf("Getting CA cert; parent server URL is %s", util.GetMaskedURL(ca.Config.Intermediate.ParentServer.URL))
+		log.Debugf("===== lib/ca.go getCACert CA配置有父证书 parent server URL is %s", util.GetMaskedURL(ca.Config.Intermediate.ParentServer.URL))
 		clientCfg := ca.Config.Client
 		if clientCfg == nil {
 			clientCfg = &ClientConfig{}
@@ -316,6 +320,7 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 		}
 		log.Debugf("Stored intermediate certificate chain at %s", chainPath)
 	} else {
+		log.Debug("===== lib/ca.go getCACert CA没有配置父证书 需要生成自签名的CA根证书")
 		// This is a root CA, so create a CSR (Certificate Signing Request)
 		if ca.Config.CSR.CN == "" {
 			ca.Config.CSR.CN = "fabric-ca-server"
@@ -355,11 +360,12 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 		// Call CFSSL to initialize the CA
 		// TODO 添加国密分支 目前强制使用国密
 		// if IsGMConfig() {
-		// 	cert, err = createGmSm2Cert(key, &req, cspSigner)
+		// 	cert, err = createRootCACert(key, &req, cspSigner)
 		// } else {
 		// 	cert, _, err = initca.NewFromSigner(&req, cspSigner)
 		// }
-		cert, err = createGmSm2Cert(key, &req, cspSigner)
+		// 生成自签名的CA根证书
+		cert, err = createRootCACert(key, &req, cspSigner)
 		if err != nil {
 			return nil, errors.WithMessage(err, "Failed to create new CA certificate")
 		}
@@ -517,7 +523,7 @@ func getVerifyOptions(ca *CA) (*x509.VerifyOptions, error) {
 // after the certificate start time.  (this is to support reenrollIgnoreCertExpiry)
 func (ca *CA) VerifyCertificate(cert *x509.Certificate, forceTime bool) error {
 
-	log.Debugf("Certicate Dates: NotAfter = %s NotBefore = %s \n", cert.NotAfter.String(), cert.NotBefore.String())
+	// log.Debugf("===== lib/ca.go VerifyCertificate Certicate Dates: NotAfter = %s NotBefore = %s \n", cert.NotAfter.Format(time.RFC3339), cert.NotBefore.Format(time.RFC3339))
 
 	opts, err := getVerifyOptions(ca)
 	// opts, err := ca.getVerifyOptions()
@@ -530,8 +536,15 @@ func (ca *CA) VerifyCertificate(cert *x509.Certificate, forceTime bool) error {
 	if forceTime {
 		opts.CurrentTime = cert.NotBefore.Add(time.Duration(time.Second * 30))
 	}
+	// log.Debugf("===== lib/ca.go VerifyCertificate before cert.Verify: NotAfter=%s NotBefore=%s opts.CurrentTime=%s", cert.NotAfter.Format(time.RFC3339), cert.NotBefore.Format(time.RFC3339), opts.CurrentTime.Format(time.RFC3339))
+	// if opts.CurrentTime.After(cert.NotAfter) {
+	// 	log.Debugf("===== 见鬼了 opts.CurrentTime: %s , cert.NotAfter: %s", opts.CurrentTime.Format(time.RFC3339), cert.NotAfter.Format(time.RFC3339))
+	// 	log.Debugf("===== 见鬼了 opts.CurrentTime: %#v , cert.NotAfter: %#v", opts.CurrentTime, cert.NotAfter)
+	// }
+	// log.Debugf("===== lib/ca.go VerifyCertificate before cert.Verify: opts.Intermediates= %#v", opts.Intermediates)
 	_, err = cert.Verify(*opts)
 	if err != nil {
+		// log.Debugf("===== lib/ca.go VerifyCertificate after cert.Verify: NotAfter=%s NotBefore=%s opts.CurrentTime=%s", cert.NotAfter.Format(time.RFC3339), cert.NotBefore.Format(time.RFC3339), opts.CurrentTime.Format(time.RFC3339))
 		return errors.WithMessage(err, "Failed to verify certificate")
 	}
 	return nil

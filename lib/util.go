@@ -92,6 +92,16 @@ func UnmarshalConfig(config interface{}, vp *viper.Viper, configFile string,
 	return nil
 }
 
+// 获取该注册用户能拉取证书的最大次数
+//  根据请求的MaxEnrollments与ca配置的MaxEnrollments确定实际的MaxEnrollments
+//  请求值<-1直接返回0和错误
+//  ca配置为-1而请求为0,则返回-1
+//  ca配置为-1而请求非0,返回请求值
+//  ca配置为0返回0和错误
+//  ca配置>0,请求-1,返回0和错误
+//  ca配置>0,请求0,返回ca配置
+//  ca配置>0,请求>ca配置,返回0和错误
+//  ca配置>0,请求>0且<=ca配置,返回请求值
 func getMaxEnrollments(userMaxEnrollments int, caMaxEnrollments int) (int, error) {
 	log.Debugf("Max enrollment value verification - User specified max enrollment: %d, CA max enrollment: %d", userMaxEnrollments, caMaxEnrollments)
 	if userMaxEnrollments < -1 {

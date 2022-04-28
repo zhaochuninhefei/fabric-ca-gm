@@ -299,13 +299,13 @@ signing:
     default:
       usage:
         - digital signature
-      expiry: 8760h
+      expiry: 438000h
     profiles:
       ca:
          usage:
            - cert sign
            - crl sign
-         expiry: 43800h
+         expiry: 700800h
          caconstraint:
            isca: true
            maxpathlen: 0
@@ -316,7 +316,7 @@ signing:
             - server auth
             - client auth
             - key agreement
-         expiry: 8760h
+         expiry: 438000h
 
 ###########################################################################
 #  Certificate Signing Request (CSR) section.
@@ -351,7 +351,7 @@ csr:
      - <<<MYHOST>>>
      - localhost
    ca:
-      expiry: 131400h
+      expiry: 876000h
       pathlength: <<<PATHLENGTH>>>
 
 ###########################################################################
@@ -629,10 +629,12 @@ func (s *ServerCmd) createDefaultConfigFile() error {
 		// Create the default config, but only if they provided this bootstrap
 		// username and password.
 		up := s.myViper.GetString("boot")
+		log.Infof("===== cmd/fabric-ca-server/config.go createDefaultConfigFile up: %s", up)
 		if up == "" {
 			return errors.New("The '-b user:pass' option is required")
 		}
 		ups := strings.Split(up, ":")
+		log.Infof("===== cmd/fabric-ca-server/config.go createDefaultConfigFile ups: %s", ups)
 		if len(ups) < 2 {
 			return errors.Errorf("The value '%s' on the command line is missing a colon separator", up)
 		}

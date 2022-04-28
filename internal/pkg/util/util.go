@@ -224,10 +224,10 @@ func VerifyToken(csp bccsp.BCCSP, token string, method, uri string, body []byte,
 	b64Body := B64Encode(body)
 	b64uri := B64Encode([]byte(uri))
 	sigString := method + "." + b64uri + "." + b64Body + "." + b64Cert
-	log.Infof("xxx before csp .KeyImport csp : %T b64Body %s", csp, sigString)
+	// log.Infof("===== internal/pkg/util/util.go VerifyToken before csp .KeyImport csp : %T b64Body %s", csp, sigString)
 	// sm2cert := ParseX509Certificate2Sm2(x509Cert)
 	pk2, err := csp.KeyImport(x509Cert, &bccsp.GMX509PublicKeyImportOpts{Temporary: true})
-	log.Infof("xxx end csp .KeyImport pk2 : %T", pk2)
+	// log.Infof("===== internal/pkg/util/util.go VerifyToken end csp .KeyImport pk2 : %T", pk2)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Public Key import into BCCSP failed with error")
 	}
