@@ -52,25 +52,25 @@ func TestECCreateToken(t *testing.T) {
 	assert.NoError(t, err, "CreateToken failed")
 
 	os.Setenv("FABRIC_CA_SERVER_COMPATIBILITY_MODE_V1_3", "false") // Test new token
-	_, err = VerifyToken(bccsp, tok, "GET", "/enroll", body, false)
+	_, err = VerifyTokenFromHttpRequest(bccsp, tok, "GET", "/enroll", body, false)
 	assert.NoError(t, err, "VerifyToken failed")
 
-	_, err = VerifyToken(nil, tok, "GET", "/enroll", body, false)
+	_, err = VerifyTokenFromHttpRequest(nil, tok, "GET", "/enroll", body, false)
 	assert.Error(t, err, "VerifyToken should have failed as no instance of CSP was provided")
 
-	_, err = VerifyToken(bccsp, "", "GET", "/enroll", body, false)
+	_, err = VerifyTokenFromHttpRequest(bccsp, "", "GET", "/enroll", body, false)
 	assert.Error(t, err, "VerifyToken should have failed as no EC token was provided")
 
-	_, err = VerifyToken(bccsp, tok, "GET", "/enroll", nil, false)
+	_, err = VerifyTokenFromHttpRequest(bccsp, tok, "GET", "/enroll", nil, false)
 	assert.Error(t, err, "VerifyToken should have failed as no body was provided")
 
-	_, err = VerifyToken(bccsp, tok, "POST", "/enroll", body, false)
+	_, err = VerifyTokenFromHttpRequest(bccsp, tok, "POST", "/enroll", body, false)
 	assert.Error(t, err, "VerifyToken should have failed as the method was changed")
 
-	_, err = VerifyToken(bccsp, tok, "GET", "/affiliations", body, false)
+	_, err = VerifyTokenFromHttpRequest(bccsp, tok, "GET", "/affiliations", body, false)
 	assert.Error(t, err, "VerifyToken should have failed as the path was changed")
 
-	_, err = VerifyToken(bccsp, tok, "GET", "/enroll", append(body, byte('T')), false)
+	_, err = VerifyTokenFromHttpRequest(bccsp, tok, "GET", "/enroll", append(body, byte('T')), false)
 	assert.Error(t, err, "VerifyToken should have failed as the body was changed")
 
 	ski, err := ioutil.ReadFile(filepath.Join("testdata", "ec-key.ski"))
@@ -85,12 +85,12 @@ func TestECCreateToken(t *testing.T) {
 	payload := B64Encode(body) + "." + b64Cert
 	oldToken, err := genSM2Token(bccsp, privKey, b64Cert, payload)
 	FatalError(t, err, "Failed to create token")
-	_, err = VerifyToken(bccsp, oldToken, "GET", "/enroll", body, false)
+	_, err = VerifyTokenFromHttpRequest(bccsp, oldToken, "GET", "/enroll", body, false)
 	assert.Error(t, err)
 
 	// Test that by default with no environment variable set, the old token is considered valid
 	os.Unsetenv("FABRIC_CA_SERVER_COMPATIBILITY_MODE_V1_3")
-	_, err = VerifyToken(bccsp, oldToken, "GET", "/enroll", body, true)
+	_, err = VerifyTokenFromHttpRequest(bccsp, oldToken, "GET", "/enroll", body, true)
 	assert.NoError(t, err, "Failed to verify token using old token type")
 }
 
@@ -162,7 +162,7 @@ func TestGetX509CertsFromPem(t *testing.T) {
 
 func TestEmptyToken(t *testing.T) {
 	csp := factory.GetDefault()
-	_, err := VerifyToken(csp, "", "POST", "/enroll", []byte("request-body"), true)
+	_, err := VerifyTokenFromHttpRequest(csp, "", "POST", "/enroll", []byte("request-body"), true)
 	assert.Error(t, err, "verification should fail with an empty token")
 }
 

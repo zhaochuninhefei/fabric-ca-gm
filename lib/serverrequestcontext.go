@@ -184,59 +184,61 @@ func (ctx *serverRequestContextImpl) verifyIdemixToken(authHdr, method, uri stri
 }
 
 func (ctx *serverRequestContextImpl) verifyX509Token(ca *CA, authHdr, method, uri string, body []byte) (string, error) {
-	log.Debug("Caller is using a x509 certificate")
+	log.Debug("===== lib/serverrequestcontext.go verifyX509Token: Caller is using a x509 certificate")
 	// Verify the token; the signature is over the header and body
-	cert, err2 := util.VerifyToken(ca.csp, authHdr, method, uri, body, ca.server.Config.CompMode1_3)
+	// 检查http请求携带的token是否有效，并返回对应的x509证书
+	cert, err2 := util.VerifyTokenFromHttpRequest(ca.csp, authHdr, method, uri, body, ca.server.Config.CompMode1_3)
 	if err2 != nil {
 		return "", caerrors.NewAuthenticationErr(caerrors.ErrInvalidToken, "Invalid token in authorization header: %s", err2)
 	}
-
+	// 确认是否是reenroll请求且忽略证书到期检查。
 	// determine if this being called for a reenroll and the ignore cert expiry property isset
 	// passed to the verify certificate to force it's checking of expiry time to be effectively ignored
 	reenrollIgnoreCertExpiry := ctx.endpoint.Path == "reenroll" && ctx.ca.Config.CA.ReenrollIgnoreCertExpiry
-
+	// 检查http携带的证书cert是否是由本ca签署的
 	// Make sure the caller's cert was issued by this CA
 	err2 = ca.VerifyCertificate(cert, reenrollIgnoreCertExpiry)
 	if err2 != nil {
 		return "", caerrors.NewAuthenticationErr(caerrors.ErrUntrustedCertificate, "Untrusted certificate: %s", err2)
 	}
-
+	// 从x509证书获取Subject.CommonName作为EnrollmentID
 	id := util.GetEnrollmentIDFromX509Certificate(cert)
 	log.Debugf("Checking for revocation/expiration of certificate owned by '%s'", id)
-
+	// 检查证书是否过期或被撤销
 	// VerifyCertificate ensures that the certificate passed in hasn't
 	// expired and checks the CRL for the server.
 	expired, checked := revoke.VerifyCertificate(cert)
 	if !checked {
 		return "", caerrors.NewHTTPErr(401, caerrors.ErrCertRevokeCheckFailure, "Failed while checking for revocation")
 	}
-
 	if expired {
 		log.Debugf("Expired Certificate")
 		if reenrollIgnoreCertExpiry {
+			// 根据reenrollIgnoreCertExpiry决定是否忽略证书过期
 			log.Infof("Ignoring expired certificate for re-enroll operation")
 		} else {
 			return "", caerrors.NewAuthenticationErr(caerrors.ErrCertExpired,
 				"The certificate in the authorization header is a revoked or expired certificate")
 		}
 	}
-
+	// 根据aki与serialNumber从ca本地数据库中读取对应的证书
 	aki := hex.EncodeToString(cert.AuthorityKeyId)
 	serial := util.GetSerialAsHex(cert.SerialNumber)
 	aki = strings.ToLower(strings.TrimLeft(aki, "0"))
 	serial = strings.ToLower(strings.TrimLeft(serial, "0"))
-
 	certificate, err := ca.GetCertificate(serial, aki)
 	if err != nil {
 		return "", err
 	}
-
+	// 再次检查证书是否被撤销
 	if certificate.Status == "revoked" {
 		return "", caerrors.NewAuthenticationErr(caerrors.ErrCertRevoked, "The certificate in the authorization header is a revoked certificate")
 	}
-
+	// 将x509证书的Subject.CommonName设置为请求上下文的EnrollmentID
 	ctx.enrollmentID = id
+	// 设置请求上下文的x509证书
 	ctx.enrollmentCert = cert
+	// 将x509证书的Subject.CommonName对应的注册用户取出并设置为请求上下文的caller
 	ctx.caller, err = ctx.GetCaller()
 	if err != nil {
 		return "", err
@@ -470,6 +472,7 @@ func (ctx *serverRequestContextImpl) CanModifyUser(req *api.ModifyIdentityReques
 	return nil
 }
 
+// 根据ctx.enrollmentID获取对应的注册用户作为caller返回。
 // GetCaller gets the user who is making this server request
 func (ctx *serverRequestContextImpl) GetCaller() (user.User, error) {
 	if ctx.caller != nil {

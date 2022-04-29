@@ -205,79 +205,86 @@ func genSM2Token(csp bccsp.BCCSP, key bccsp.Key, b64cert, payload string) (strin
 
 }
 
-// VerifyToken verifies token signed by either ECDSA or RSA and
+// 检查http请求携带的token是否有效，并返回对应的x509证书。
+// VerifyTokenFromHttpRequest verifies token signed by SM2, ECDSA or RSA and
 // returns the associated user ID
-//
-// TODO(mjs): Move to consumer (lib/serverRequestContextImpl#verifyX509Token)
-func VerifyToken(csp bccsp.BCCSP, token string, method, uri string, body []byte, compMode1_3 bool) (*x509.Certificate, error) {
+func VerifyTokenFromHttpRequest(csp bccsp.BCCSP, token string, method, uri string, body []byte, compMode1_3 bool) (*x509.Certificate, error) {
 	if csp == nil {
 		return nil, errors.New("BCCSP instance is not present")
 	}
+	// 解析出x509证书，base64转码的x509证书以及base64转码的签名
 	x509Cert, b64Cert, b64Sig, err := decodeToken(token)
 	if err != nil {
 		return nil, err
 	}
+	// 对签名做base64解码
 	sig, err := B64Decode(b64Sig)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Invalid base64 encoded signature in token")
 	}
+	// 对body和url做base64转码
 	b64Body := B64Encode(body)
 	b64uri := B64Encode([]byte(uri))
+	// 拼接签名内容
 	sigString := method + "." + b64uri + "." + b64Body + "." + b64Cert
 	// log.Infof("===== internal/pkg/util/util.go VerifyToken before csp .KeyImport csp : %T b64Body %s", csp, sigString)
 	// sm2cert := ParseX509Certificate2Sm2(x509Cert)
-	pk2, err := csp.KeyImport(x509Cert, &bccsp.GMX509PublicKeyImportOpts{Temporary: true})
-	// log.Infof("===== internal/pkg/util/util.go VerifyToken end csp .KeyImport pk2 : %T", pk2)
+	// 从x509证书解析出证书公钥
+	certPubKey, err := csp.KeyImport(x509Cert, &bccsp.GMX509PublicKeyImportOpts{Temporary: true})
+	// log.Infof("===== internal/pkg/util/util.go VerifyToken end csp .KeyImport certPubKey : %T", certPubKey)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Public Key import into BCCSP failed with error")
 	}
-	if pk2 == nil {
+	if certPubKey == nil {
 		return nil, errors.New("Public Key Cannot be imported into BCCSP")
 	}
-
 	//bccsp.X509PublicKeyImportOpts
 	//Using default hash algo
+	// 对签名消息做预散列
 	digest, digestError := csp.Hash([]byte(sigString), &bccsp.SM3Opts{})
-	// fmt.Printf("===== internal/pkg/util/util.go VerifyToken digest: %v\n", digest)
+	// log.Debugf("===== internal/pkg/util/util.go VerifyToken digest: %v", digest)
 	if digestError != nil {
 		return nil, errors.WithMessage(digestError, "Message digest failed")
 	}
-	log.Debugf("pk2 %T \n sig %T\n digest %s\n", pk2, sig, B64Encode(digest))
-	valid, validErr := csp.Verify(pk2, sig, digest, nil)
+	// log.Debugf("===== internal/pkg/util/util.go VerifyToken certPubKey类型: %T , sig: %v , digest: %s", certPubKey, sig, B64Encode(digest))
+	// 使用证书公钥对sig做验签
+	valid, validErr := csp.Verify(certPubKey, sig, digest, nil)
 	if compMode1_3 && !valid {
-		log.Debugf("Failed to verify token based on new authentication header requirements: %s", err)
+		log.Debugf("===== internal/pkg/util/util.go VerifyToken 签名内容包含httpMethod与uri的验签失败,尝试签名内容只有body和证书的验签: %s", err)
 		sigString := b64Body + "." + b64Cert
 		digest, digestError := csp.Hash([]byte(sigString), &bccsp.SM3Opts{})
 		if digestError != nil {
 			return nil, errors.WithMessage(digestError, "Message digest failed")
 		}
-		valid, validErr = csp.Verify(pk2, sig, digest, nil)
+		valid, validErr = csp.Verify(certPubKey, sig, digest, nil)
 	}
-
 	if validErr != nil {
-		return nil, errors.WithMessage(validErr, "Token signature validation failure")
+		return nil, errors.WithMessage(validErr, "===== internal/pkg/util/util.go VerifyToken: Token signature validation failure")
 	}
 	if !valid {
-		return nil, errors.New("Token signature validation failed")
+		return nil, errors.New("===== internal/pkg/util/util.go VerifyToken: Token signature validation failed")
 	}
-
 	return x509Cert, nil
 }
 
+// 将token解析为 x509证书、Base64转码的x509证书以及token签名。
 // decodeToken extracts an X509 certificate and base64 encoded signature from a token
 func decodeToken(token string) (*x509.Certificate, string, string, error) {
 	if token == "" {
 		return nil, "", "", errors.New("Invalid token; it is empty")
 	}
+	// 用"."切割token
 	parts := strings.Split(token, ".")
 	if len(parts) != 2 {
 		return nil, "", "", errors.New("Invalid token format; expecting 2 parts separated by '.'")
 	}
+	// 对token第一部分做Base64解码
 	b64cert := parts[0]
 	certDecoded, err := B64Decode(b64cert)
 	if err != nil {
 		return nil, "", "", errors.WithMessage(err, "Failed to decode base64 encoded x509 cert")
 	}
+	// 解析出x509证书
 	x509Cert, err := GetX509CertificateFromPEM(certDecoded)
 	if err != nil {
 		return nil, "", "", errors.WithMessage(err, "Error in parsing x509 certificate given block bytes")
@@ -517,6 +524,7 @@ func GetEnrollmentIDFromPEM(cert []byte) (string, error) {
 	return GetEnrollmentIDFromX509Certificate(x509Cert), nil
 }
 
+// 从x509证书获取Subject.CommonName作为EnrollmentID返回。
 // GetEnrollmentIDFromX509Certificate returns the EnrollmentID from the X509 certificate
 func GetEnrollmentIDFromX509Certificate(cert *x509.Certificate) string {
 	// cert.Subject.CommonName 是 EnrollmentID

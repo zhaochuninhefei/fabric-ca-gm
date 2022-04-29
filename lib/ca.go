@@ -485,7 +485,7 @@ func (ca *CA) initConfig() (err error) {
 	return nil
 }
 
-// TODO 获取国密证书的检查配置
+// 获取国密证书的检查配置
 func getVerifyOptions(ca *CA) (*x509.VerifyOptions, error) {
 	chain, err := ca.getCAChain()
 	if err != nil {
@@ -515,6 +515,7 @@ func getVerifyOptions(ca *CA) (*x509.VerifyOptions, error) {
 	}, nil
 }
 
+// 检查目标证书cert是否是由ca签署的。
 // VerifyCertificate verifies that 'cert' was issued by this CA
 // Return nil if successful; otherwise, return an error.
 // 'forceTime' if false, certificate expiry times will be checked based
@@ -522,15 +523,13 @@ func getVerifyOptions(ca *CA) (*x509.VerifyOptions, error) {
 // if true, it will force the time to be used to check for expiry to be 30 seconds
 // after the certificate start time.  (this is to support reenrollIgnoreCertExpiry)
 func (ca *CA) VerifyCertificate(cert *x509.Certificate, forceTime bool) error {
-
 	// log.Debugf("===== lib/ca.go VerifyCertificate Certicate Dates: NotAfter = %s NotBefore = %s \n", cert.NotAfter.Format(time.RFC3339), cert.NotBefore.Format(time.RFC3339))
-
+	// 从CA配置获取检查参数
 	opts, err := getVerifyOptions(ca)
 	// opts, err := ca.getVerifyOptions()
 	if err != nil {
 		return errors.WithMessage(err, "Failed to get verify options")
 	}
-
 	// force check time to be 30 seconds after certificate start time to ensure expiry doesn't get flagged
 	// this is one of the checks that is made on the certificate in Verify()
 	if forceTime {
@@ -542,6 +541,8 @@ func (ca *CA) VerifyCertificate(cert *x509.Certificate, forceTime bool) error {
 	// 	log.Debugf("===== 见鬼了 opts.CurrentTime: %#v , cert.NotAfter: %#v", opts.CurrentTime, cert.NotAfter)
 	// }
 	// log.Debugf("===== lib/ca.go VerifyCertificate before cert.Verify: opts.Intermediates= %#v", opts.Intermediates)
+	// 尝试从ca的根证书构建cert的信任链，成功则说明cert是由ca直接或间接签署的。
+	// 目前应该都是直接签署的。即证书信任链长度只有2。
 	_, err = cert.Verify(*opts)
 	if err != nil {
 		// log.Debugf("===== lib/ca.go VerifyCertificate after cert.Verify: NotAfter=%s NotBefore=%s opts.CurrentTime=%s", cert.NotAfter.Format(time.RFC3339), cert.NotBefore.Format(time.RFC3339), opts.CurrentTime.Format(time.RFC3339))
