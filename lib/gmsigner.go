@@ -26,8 +26,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// 证书签名
-func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
+// 使用CA作为签署者生成x509证书
+func createCertByCA(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	// fmt.Printf("===== lib/gmca.go signCert: CA服务端开始做证书签名\n")
 	// fmt.Printf("===== lib/gmca.go signCert req : %#v\n", req.Subject)
 	// 注意，这里只把 req.Request 转为pem，丢掉了 req.Subject 信息
@@ -38,8 +38,8 @@ func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	if block.Type != "NEW CERTIFICATE REQUEST" && block.Type != "CERTIFICATE REQUEST" {
 		return nil, errors.Errorf("not a csr")
 	}
-	// 基于req.Request生成证书模板
-	template, err := parseCertificateRequest(block.Bytes)
+	// 基于req.Request(证书请求csr)生成证书模板
+	template, err := createCertTemplateByCertificateRequest(block.Bytes)
 	if err != nil {
 		log.Errorf("===== lib/gmca.go signCert: parseCertificateRequest error:[%s]", err)
 		return nil, err
@@ -47,38 +47,39 @@ func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	// 补充OU与证书期限
 	err = fillOUAndNotAfter(template, req)
 	if err != nil {
-		log.Errorf("===== lib/gmca.go signCert: fillOUAndNotAfter error:[%s]", err)
+		log.Errorf("===== lib/gmca.go createCertByCA: fillOUAndNotAfter error:[%s]", err)
 		return nil, err
 	}
-	certfile := ca.Config.CA.Certfile
+	// 获取CA证书路径
+	caCertFile := ca.Config.CA.Certfile
 	//certfile := req.Profile
-	// log.Infof("===== lib/gmca.go signCert:certifle = %s", certfile)
-	// 读取CA证书文件，获取CA的私钥与x509证书
-	rootkey, _, rootca, err := util.GetSignerFromCertFile(certfile, ca.csp)
+	// log.Infof("===== lib/gmca.go createCertByCA:certifle = %s", certfile)
+	// 读取CA证书文件，获取CA的私钥与其x509证书
+	caRootkey, _, caRootCert, err := util.GetSignerFromCertFile(caCertFile, ca.csp)
 	if err != nil {
-
 		return nil, err
 	}
-	// log.Infof("===== lib/gmca.go signCert:rootca = %v", rootca)
+	// log.Infof("===== lib/gmca.go createCertByCA:rootca = %v", rootca)
 	// rootca := ParseX509Certificate2Sm2(x509cert)
-	// 使用CA的私钥与x509证书给template签名，生成对应证书，并转为pem字节数组
-	cert, err = sw.CreateCertificateToMem(template, rootca, rootkey)
+	// 使用CA的私钥与其x509证书给template签名，生成对应证书，并转为pem字节数组
+	cert, err = sw.CreateCertificateToMem(template, caRootCert, caRootkey)
 	if err != nil {
 		return nil, err
 	}
-	// log.Infof("===== lib/gmca.go signCert:template = %v\n Type = %T", template, template.PublicKey)
+	// log.Infof("===== lib/gmca.go createCertByCA:template = %v\n Type = %T", template, template.PublicKey)
 	// 将pem字节数组转为x509证书
 	clientCert, err := x509.ReadCertificateFromPem(cert)
-	// log.Infof("===== lib/gmca.go signCert:template.SerialNumber---,%v", template.SerialNumber)
-	// log.Infof("===== lib/gmca.go signCert:clientCert--,%v", clientCert)
-	// log.Infof("===== lib/gmca.go signCert:cert--,%v", cert)
-	// log.Infof("===== lib/gmca.go signCert:req.Label--,%v", req.Label)
-	// log.Infof("===== lib/gmca.go signCert:clientCert.NotAfter--,%v", clientCert.NotAfter)
-	// log.Info("===== lib/gmca.go signCert: Exit ParseCertificate")
-	if err == nil {
-		log.Infof("===== lib/gmca.go signCert: the sign cert len [%d]", len(cert))
+	if err != nil {
+		return nil, err
 	}
-
+	// log.Infof("===== lib/gmca.go createCertByCA:template.SerialNumber---,%v", template.SerialNumber)
+	// log.Infof("===== lib/gmca.go createCertByCA:clientCert--,%v", clientCert)
+	// log.Infof("===== lib/gmca.go createCertByCA:cert--,%v", cert)
+	// log.Infof("===== lib/gmca.go createCertByCA:req.Label--,%v", req.Label)
+	// log.Infof("===== lib/gmca.go createCertByCA:clientCert.NotAfter--,%v", clientCert.NotAfter)
+	// log.Info("===== lib/gmca.go createCertByCA: Exit ParseCertificate")
+	log.Infof("===== lib/gmca.go createCertByCA: 生成的证书长度 [%d]", len(cert))
+	// 将生成的证书插入DB
 	var certRecord = certdb.CertificateRecord{
 		Serial:  template.SerialNumber.String(),
 		AKI:     hex.EncodeToString(clientCert.AuthorityKeyId),
@@ -89,20 +90,18 @@ func signCert(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	}
 	//aki := hex.EncodeToString(cert.AuthorityKeyId)
 	//serial := util.GetSerialAsHex(cert.SerialNumber)
-
 	err = ca.certDBAccessor.InsertCertificate(certRecord)
 	if err != nil {
-		log.Errorf("===== lib/gmca.go signCert error InsertCertificate:[%s]", err)
+		log.Errorf("===== lib/gmca.go createCertByCA error InsertCertificate:[%s]", err)
 	}
-
 	return
 }
 
-// 生成自签名证书
+// 生成自签名的CA根证书
 func createRootCACert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Signer) (cert []byte, err error) {
 	log.Infof("===== lib/gmca.go createRootCACert key :%T", key)
-
-	csrPEM, err := generate(priv, req, key)
+	// 生成标准的国密x509证书请求
+	csrPEM, err := createCertificateRequest(priv, req, key)
 	if err != nil {
 		log.Errorf("===== lib/gmca.go createRootCACert generate error:%s", err)
 	}
@@ -114,16 +113,18 @@ func createRootCACert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Si
 	if block.Type != "NEW CERTIFICATE REQUEST" && block.Type != "CERTIFICATE REQUEST" {
 		return nil, errors.Errorf("===== lib/gmca.go createRootCACert sm2 not a csr")
 	}
-	// TODO 需要补充证书期限信息
-	sm2Template, err := parseCertificateRequest(block.Bytes)
+	// 根据证书请求生成x509证书模板，需要补充证书期限信息
+	certTemplate, err := createCertTemplateByCertificateRequest(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
-	sm2Template.NotBefore = time.Now()
+	// 补充模板的证书期限
+	certTemplate.NotBefore = time.Now()
 	// 作为CA自签名的根证书，使用期限最长的 defaultRootCACertificateExpiration
-	sm2Template.NotAfter = time.Now().Add(parseDuration(defaultRootCACertificateExpiration))
+	certTemplate.NotAfter = time.Now().Add(parseDuration(defaultRootCACertificateExpiration))
 	// log.Infof("===== lib/gmca.go createRootCACert key is %T   ---%T", sm2Template.PublicKey, sm2Template)
-	cert, err = sw.CreateCertificateToMem(sm2Template, sm2Template, key)
+	// 生成自签名的CA根证书
+	cert, err = sw.CreateCertificateToMem(certTemplate, certTemplate, key)
 	return
 }
 
@@ -173,8 +174,9 @@ func fillOUAndNotAfter(template *x509.Certificate, req signer.SignRequest) error
 	return nil
 }
 
-// 证书请求转换成证书  参数为  block .Bytes
-func parseCertificateRequest(csrBytes []byte) (template *x509.Certificate, err error) {
+// 根据证书请求生成x509证书模板
+//  注意，生成的模板缺少证书期限
+func createCertTemplateByCertificateRequest(csrBytes []byte) (template *x509.Certificate, err error) {
 	csrv, err := x509.ParseCertificateRequest(csrBytes)
 	if err != nil {
 		return nil, err
@@ -231,20 +233,21 @@ func parseCertificateRequest(csrBytes []byte) (template *x509.Certificate, err e
 	return
 }
 
-// 证书请求 转成 国密证书请求
-func generate(priv crypto.Signer, req *csr.CertificateRequest, key bccsp.Key) (csr []byte, err error) {
+// 生成标准的国密x509证书请求
+func createCertificateRequest(priv crypto.Signer, req *csr.CertificateRequest, key bccsp.Key) (csr []byte, err error) {
 	// log.Info("===== lib/gmca.go generate")
 	sigAlgo := signerAlgo(priv)
 	if sigAlgo == x509.UnknownSignatureAlgorithm {
-		return nil, errors.Errorf("===== lib/gmca.go generate Private key is unavailable")
+		return nil, errors.Errorf("===== lib/gmca.go generate Private key type is unsupported")
 	}
 	// log.Info("===== lib/gmca.go generate begin create sm2.CertificateRequest")
-	// TODO 添加错误日志
 	reqName := req.Name()
+	// 生成证书申请模板
 	var tpl = x509.CertificateRequest{
 		Subject:            reqName,
 		SignatureAlgorithm: sigAlgo,
 	}
+	// 根据req.Hosts补充SAN字段 优先顺序 IP > EMail > DNS
 	for i := range req.Hosts {
 		if ip := net.ParseIP(req.Hosts[i]); ip != nil {
 			tpl.IPAddresses = append(tpl.IPAddresses, ip)
@@ -254,9 +257,9 @@ func generate(priv crypto.Signer, req *csr.CertificateRequest, key bccsp.Key) (c
 			tpl.DNSNames = append(tpl.DNSNames, req.Hosts[i])
 		}
 	}
-
+	// 请求CA证书时，补充BasicConstraints信息
 	if req.CA != nil {
-		err = appendCAInfoToCSRSm2(req.CA, &tpl)
+		err = appendCAInfoToCSR(req.CA, &tpl)
 		if err != nil {
 			err = fmt.Errorf("===== lib/gmca.go generate sm2 GenerationFailed")
 			return
@@ -267,6 +270,7 @@ func generate(priv crypto.Signer, req *csr.CertificateRequest, key bccsp.Key) (c
 	return
 }
 
+// 检查并获取签名算法
 func signerAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
 	switch priv.Public().(type) {
 	case *sm2.PublicKey:
@@ -276,30 +280,8 @@ func signerAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
 	}
 }
 
-// // appendCAInfoToCSR appends CAConfig BasicConstraint extension to a CSR
-// func appendCAInfoToCSR(reqConf *csr.CAConfig, csreq *x509.CertificateRequest) error {
-// 	pathlen := reqConf.PathLength
-// 	if pathlen == 0 && !reqConf.PathLenZero {
-// 		pathlen = -1
-// 	}
-// 	val, err := asn1.Marshal(csr.BasicConstraints{true, pathlen})
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	csreq.ExtraExtensions = []pkix.Extension{
-// 		{
-// 			Id:       asn1.ObjectIdentifier{2, 5, 29, 19},
-// 			Value:    val,
-// 			Critical: true,
-// 		},
-// 	}
-// 	return nil
-// }
-
 // appendCAInfoToCSR appends CAConfig BasicConstraint extension to a CSR
-func appendCAInfoToCSRSm2(reqConf *csr.CAConfig, csreq *x509.CertificateRequest) error {
+func appendCAInfoToCSR(reqConf *csr.CAConfig, csreq *x509.CertificateRequest) error {
 	pathlen := reqConf.PathLength
 	if pathlen == 0 && !reqConf.PathLenZero {
 		pathlen = -1
@@ -309,14 +291,12 @@ func appendCAInfoToCSRSm2(reqConf *csr.CAConfig, csreq *x509.CertificateRequest)
 	if err != nil {
 		return err
 	}
-
 	csreq.ExtraExtensions = []pkix.Extension{
 		{
-			Id:       asn1.ObjectIdentifier{2, 5, 29, 19},
+			Id:       asn1.ObjectIdentifier{2, 5, 29, 19}, // BasicConstraints的OID
 			Value:    val,
 			Critical: true,
 		},
 	}
-
 	return nil
 }

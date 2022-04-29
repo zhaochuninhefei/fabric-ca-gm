@@ -161,7 +161,7 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 	// TODO 国密改造
 	// cert1, err1 := ca.enrollSigner.Sign(req.SignRequest)
 	// fmt.Printf("===== lib/serverenroll.go handleEnroll: 签名前确认请求数据 req.SignRequest.Subject: %#v\n", req.SignRequest.Subject)
-	cert, err := signCert(req.SignRequest, ca)
+	cert, err := createCertByCA(req.SignRequest, ca)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Certificate signing failure")
 	}
