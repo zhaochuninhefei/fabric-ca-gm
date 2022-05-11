@@ -27,8 +27,8 @@ import (
 	"time"
 
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
@@ -227,11 +227,11 @@ func VerifyTokenFromHttpRequest(csp bccsp.BCCSP, token string, method, uri strin
 	b64uri := B64Encode([]byte(uri))
 	// 拼接签名内容
 	sigString := method + "." + b64uri + "." + b64Body + "." + b64Cert
-	// log.Infof("===== internal/pkg/util/util.go VerifyToken before csp .KeyImport csp : %T b64Body %s", csp, sigString)
+	// zclog.Infof("===== internal/pkg/util/util.go VerifyToken before csp .KeyImport csp : %T b64Body %s", csp, sigString)
 	// sm2cert := ParseX509Certificate2Sm2(x509Cert)
 	// 从x509证书解析出证书公钥
 	certPubKey, err := csp.KeyImport(x509Cert, &bccsp.GMX509PublicKeyImportOpts{Temporary: true})
-	// log.Infof("===== internal/pkg/util/util.go VerifyToken end csp .KeyImport certPubKey : %T", certPubKey)
+	// zclog.Infof("===== internal/pkg/util/util.go VerifyToken end csp .KeyImport certPubKey : %T", certPubKey)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Public Key import into BCCSP failed with error")
 	}
@@ -242,15 +242,15 @@ func VerifyTokenFromHttpRequest(csp bccsp.BCCSP, token string, method, uri strin
 	//Using default hash algo
 	// 对签名消息做预散列
 	digest, digestError := csp.Hash([]byte(sigString), &bccsp.SM3Opts{})
-	// log.Debugf("===== internal/pkg/util/util.go VerifyToken digest: %v", digest)
+	// zclog.Debugf("===== digest: %v", digest)
 	if digestError != nil {
 		return nil, errors.WithMessage(digestError, "Message digest failed")
 	}
-	// log.Debugf("===== internal/pkg/util/util.go VerifyToken certPubKey类型: %T , sig: %v , digest: %s", certPubKey, sig, B64Encode(digest))
+	// zclog.Debugf("===== certPubKey类型: %T , sig: %v , digest: %s", certPubKey, sig, B64Encode(digest))
 	// 使用证书公钥对sig做验签
 	valid, validErr := csp.Verify(certPubKey, sig, digest, nil)
 	if compMode1_3 && !valid {
-		log.Debugf("===== internal/pkg/util/util.go VerifyToken 签名内容包含httpMethod与uri的验签失败,尝试签名内容只有body和证书的验签: %s", err)
+		zclog.Debugf("===== 签名内容包含httpMethod与uri的验签失败,尝试签名内容只有body和证书的验签: %s", err)
 		sigString := b64Body + "." + b64Cert
 		digest, digestError := csp.Hash([]byte(sigString), &bccsp.SM3Opts{})
 		if digestError != nil {
@@ -387,7 +387,7 @@ func HTTPResponseToString(resp *http.Response) string {
 
 // CreateClientHome will create a home directory if it does not exist
 func CreateClientHome() (string, error) {
-	log.Debug("CreateHome")
+	zclog.Debug("===== CreateHome")
 	home := filepath.Dir(GetDefaultConfigFile("fabric-ca-client"))
 
 	if _, err := os.Stat(home); err != nil {
@@ -436,39 +436,11 @@ func GetDefaultConfigFile(cmdName string) string {
 // GetX509CertificateFromPEMFile gets an X509 certificate from a file
 func GetX509CertificateFromPEMFile(file string) (*x509.Certificate, error) {
 	return x509.ReadCertificateFromPemFile(file)
-	// pemBytes, err := ReadFile(file)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// x509Cert, err := GetX509CertificateFromPEM(pemBytes)
-	// if err != nil {
-	// 	return nil, errors.Wrapf(err, "Invalid certificate in '%s'", file)
-	// }
-	// return x509Cert, nil
 }
 
 // GetX509CertificateFromPEM get an X509 certificate from bytes in PEM format
 func GetX509CertificateFromPEM(cert []byte) (*x509.Certificate, error) {
 	return x509.ReadCertificateFromPem(cert)
-	// block, _ := pem.Decode(cert)
-	// if block == nil {
-	// 	return nil, errors.New("Failed to PEM decode certificate")
-	// }
-	// var x509Cert *x509.Certificate
-	// var err error
-	// if IsGMConfig() {
-	// 	// log.Debugf("cpcpcpcpcpcpcpcpcpcpcpcpcpcpcppcpc")
-	// 	sm2x509Cert, err := x509.ParseCertificate(block.Bytes)
-	// 	if err == nil {
-	// 		x509Cert = ParseSm2Certificate2X509(sm2x509Cert)
-	// 	}
-	// } else {
-	// 	x509Cert, err = x509.ParseCertificate(block.Bytes)
-	// }
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "Error parsing certificate")
-	// }
-	// return x509Cert, nil
 }
 
 // GetX509CertificatesFromPEM returns X509 certificates from bytes in PEM format
@@ -481,16 +453,6 @@ func GetX509CertificatesFromPEM(pemBytes []byte) ([]*x509.Certificate, error) {
 		if block == nil {
 			break
 		}
-		// var x509Cert *x509.Certificate
-		// var err error
-		// if IsGMConfig() {
-		// 	sm2x509Cert, err := x509.ParseCertificate(block.Bytes)
-		// 	if err == nil {
-		// 		x509Cert = ParseSm2Certificate2X509(sm2x509Cert)
-		// 	}
-		// } else {
-		// 	x509Cert, err = x509.ParseCertificate(block.Bytes)
-		// }
 		x509Cert, err := x509.ParseCertificate(block.Bytes)
 		if err != nil {
 			return nil, errors.Wrap(err, "Error parsing certificate")
@@ -562,8 +524,9 @@ func MakeFileNamesAbsolute(files []*string, home string) error {
 
 // Fatal logs a fatal message and exits
 func Fatal(format string, v ...interface{}) {
-	log.Fatalf(format, v...)
-	os.Exit(1)
+	// log.Fatalf(format, v...)
+	// os.Exit(1)
+	zclog.Fatalf(format, v...)
 }
 
 // GetUser returns username and password from CLI input
@@ -780,7 +743,7 @@ func ValidateAndReturnAbsConf(configFilePath, homeDir, cmdName string) (string, 
 	homeDir = strings.TrimRight(homeDir, "/")
 
 	if configFileSet && homeDirSet {
-		log.Warning("Using both --config and --home CLI flags; --config will take precedence")
+		zclog.Warn("Using both --config and --home CLI flags; --config will take precedence")
 	}
 
 	if configFileSet {

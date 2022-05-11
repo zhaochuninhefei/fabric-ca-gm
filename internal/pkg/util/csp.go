@@ -18,7 +18,6 @@ import (
 	_ "gitee.com/zhaochuninhefei/cfssl-gm/cli" // for ocspSignerFromConfig
 	"gitee.com/zhaochuninhefei/cfssl-gm/config"
 	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	_ "gitee.com/zhaochuninhefei/cfssl-gm/ocsp" // for ocspSignerFromConfig
 	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"gitee.com/zhaochuninhefei/cfssl-gm/signer/local"
@@ -29,6 +28,7 @@ import (
 	gtls "gitee.com/zhaochuninhefei/gmgo/gmtls"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 
@@ -78,7 +78,7 @@ func BccspBackedSigner(caFile, keyFile string, policy *config.Signing, csp bccsp
 	_, cspSigner, parsedCa, err := GetSignerFromCertFile(caFile, csp)
 	if err != nil {
 		// Fallback: attempt to read out of keyFile and import
-		log.Debugf("No key found in BCCSP keystore, attempting fallback")
+		zclog.Debugf("===== No key found in BCCSP keystore, attempting fallback")
 		var key bccsp.Key
 		var signer crypto.Signer
 
@@ -107,7 +107,7 @@ func getBCCSPKeyOpts(kr *csr.KeyRequest, ephemeral bool) (opts bccsp.KeyGenOpts,
 	if kr == nil {
 		return &bccsp.SM2KeyGenOpts{Temporary: ephemeral}, nil
 	}
-	log.Debugf("generate key from request: algo=%s, size=%d", kr.Algo(), kr.Size())
+	zclog.Debugf("===== generate key from request: algo=%s, size=%d", kr.Algo(), kr.Size())
 	switch kr.Algo() {
 	// case "rsa":
 	// 	switch kr.Size() {
@@ -147,12 +147,12 @@ func GetSignerFromCert(cert *gx509.Certificate, csp bccsp.BCCSP) (bccsp.Key, cry
 	if csp == nil {
 		return nil, nil, errors.New("CSP was not initialized")
 	}
-	// log.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: begin csp.KeyImport,cert.PublicKey is %T   csp:%T", cert.PublicKey, csp)
+	// zclog.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: begin csp.KeyImport,cert.PublicKey is %T   csp:%T", cert.PublicKey, csp)
 	// switch cert.PublicKey.(type) {
 	// case sm2.PublicKey:
-	// 	log.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: cert is sm2 puk")
+	// 	zclog.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: cert is sm2 puk")
 	// default:
-	// 	log.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: cert is default puk")
+	// 	zclog.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: cert is default puk")
 	// }
 
 	// sm2cert := sw.ParseX509Certificate2Sm2(cert)
@@ -164,7 +164,7 @@ func GetSignerFromCert(cert *gx509.Certificate, csp bccsp.BCCSP) (bccsp.Key, cry
 	}
 	ski := certPubK.SKI()
 	kname := hex.EncodeToString(ski)
-	// log.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: begin csp.GetKey kname:%s", kname)
+	// zclog.Infof("===== internal/pkg/util/csp.go GetSignerFromCert: begin csp.GetKey kname:%s", kname)
 	// Get the key given the SKI value
 	privateKey, err := csp.GetKey(ski)
 	if err != nil {
@@ -180,14 +180,14 @@ func GetSignerFromCert(cert *gx509.Certificate, csp bccsp.BCCSP) (bccsp.Key, cry
 	if err != nil {
 		return nil, nil, errors.WithMessage(err, "Failed to load ski from bccsp")
 	}
-	// log.Info("===== internal/pkg/util/csp.go GetSignerFromCert successfuul")
+	// zclog.Info("===== internal/pkg/util/csp.go GetSignerFromCert successfuul")
 	return privateKey, signer, nil
 }
 
 // 根据x509证书文件获取对应的私钥、Signer以及x509证书。
 // GetSignerFromCertFile load skiFile and load private key represented by ski and return bccsp signer that conforms to crypto.Signer
 func GetSignerFromCertFile(certFile string, csp bccsp.BCCSP) (bccsp.Key, crypto.Signer, *gx509.Certificate, error) {
-	// log.Infof("===== internal/pkg/util/csp.go GetSignerFromCertFile:certFile:,%s", certFile)
+	// zclog.Infof("===== internal/pkg/util/csp.go GetSignerFromCertFile:certFile:,%s", certFile)
 	// Load cert file
 	certBytes, err := ioutil.ReadFile(certFile)
 	if err != nil {
@@ -206,7 +206,7 @@ func GetSignerFromCertFile(certFile string, csp bccsp.BCCSP) (bccsp.Key, crypto.
 	// cert, err := helpers.ParseCertificatePEM(certBytes)
 	cert, _ := gx509.ReadCertificateFromPem(certBytes)
 	// if err != nil || cert == nil {
-	// 	log.Infof("+++++++++++++ error = %s,尝试作为 gm cert 读入!", err.Error())
+	// 	zclog.Infof("===== error = %s,尝试作为 gm cert 读入!", err.Error())
 	// 	sm2Cert, err := gx509.ReadCertificateFromPem(certBytes)
 	// 	if err != nil {
 	// 		return nil, nil, nil, err
@@ -214,14 +214,14 @@ func GetSignerFromCertFile(certFile string, csp bccsp.BCCSP) (bccsp.Key, crypto.
 	// 	cert = sw.ParseSm2Certificate2X509(sm2Cert)
 	// }
 	key, cspSigner, err := GetSignerFromCert(cert, csp)
-	// log.Infof("+++++++++++++KEY = %T error = %v", key, err)
+	// zclog.Infof("===== KEY = %T error = %v", key, err)
 	return key, cspSigner, cert, err
 }
 
 // BCCSPKeyRequestGenerate generates keys through BCCSP
 // somewhat mirroring to cfssl/req.KeyRequest.Generate()
 func BCCSPKeyRequestGenerate(req *csr.CertificateRequest, myCSP bccsp.BCCSP) (bccsp.Key, crypto.Signer, error) {
-	log.Infof("generating key: %+v", req.KeyRequest)
+	zclog.Infof("===== generating key: %+v", req.KeyRequest)
 	keyOpts, err := getBCCSPKeyOpts(req.KeyRequest, false)
 	if err != nil {
 		return nil, nil, err
@@ -266,7 +266,6 @@ func ImportBCCSPKeyFromPEM(keyFile string, myCSP bccsp.BCCSP, temporary bool) (b
 		if err != nil {
 			return nil, errors.Errorf("Failed to convert SM2 private key from %s: %s", keyFile, err.Error())
 		}
-		log.Info("使用 sm2.PrivateKey !")
 		block, _ := pem.Decode(keyBuff)
 		priv, err := csp.KeyImport(block.Bytes, &bccsp.SM2PrivateKeyImportOpts{Temporary: true})
 		if err != nil {
@@ -341,8 +340,8 @@ func LoadX509KeyPair(certFile, keyFile string, csp bccsp.BCCSP) (*gtls.Certifica
 	_, cert.PrivateKey, err = GetSignerFromCert(sm2Cert, csp)
 	if err != nil {
 		if keyFile != "" {
-			log.Debugf("Could not load TLS certificate with BCCSP: %s", err)
-			log.Debugf("Attempting fallback with certfile %s and keyfile %s", certFile, keyFile)
+			zclog.Debugf("===== Could not load TLS certificate with BCCSP: %s", err)
+			zclog.Debugf("===== Attempting fallback with certfile %s and keyfile %s", certFile, keyFile)
 			fallbackCerts, err := gtls.LoadX509KeyPair(certFile, keyFile)
 			if err != nil {
 				return nil, errors.Wrapf(err, "Could not get the private key %s that matches %s", keyFile, certFile)
@@ -398,8 +397,8 @@ func LoadX509KeyPairSM2(certFile, keyFile string, csp bccsp.BCCSP) (*gtls.Certif
 	_, cert.PrivateKey, err = GetSignerFromCert(sm2Cert, csp)
 	if err != nil {
 		if keyFile != "" {
-			log.Debugf("Could not load TLS certificate with BCCSP: %s", err)
-			log.Debugf("Attempting fallback with certfile %s and keyfile %s", certFile, keyFile)
+			zclog.Debugf("===== Could not load TLS certificate with BCCSP: %s", err)
+			zclog.Debugf("===== Attempting fallback with certfile %s and keyfile %s", certFile, keyFile)
 			fallbackCerts, err := gtls.LoadX509KeyPair(certFile, keyFile)
 			if err != nil {
 				return nil, errors.Wrapf(err, "Could not get the private key %s that matches %s", keyFile, certFile)

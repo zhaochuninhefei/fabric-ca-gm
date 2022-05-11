@@ -25,7 +25,6 @@ import (
 
 	cfsslapi "gitee.com/zhaochuninhefei/cfssl-gm/api"
 	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential"
@@ -36,6 +35,7 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	cspsigner "gitee.com/zhaochuninhefei/fabric-gm/bccsp/signer"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	proto "github.com/golang/protobuf/proto"
 	fp256bn "github.com/hyperledger/fabric-amcl/amcl/FP256BN"
 	"github.com/mitchellh/mapstructure"

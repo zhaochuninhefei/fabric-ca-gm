@@ -9,9 +9,9 @@ package idemix
 import (
 	"io/ioutil"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	proto "github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )

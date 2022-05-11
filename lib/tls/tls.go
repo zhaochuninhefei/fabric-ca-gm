@@ -20,12 +20,12 @@ import (
 	"io/ioutil"
 	"time"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

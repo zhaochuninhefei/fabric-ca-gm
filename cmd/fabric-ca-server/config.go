@@ -12,11 +12,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	calog "gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/metadata"
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 
@@ -551,7 +551,7 @@ func (s *ServerCmd) configInit() (err error) {
 	debug := s.myViper.GetBool("debug")
 	calog.SetLogLevel(logLevel, debug)
 
-	log.Debugf("Home directory: %s", s.homeDirectory)
+	zclog.Debugf("===== Home directory: %s", s.homeDirectory)
 
 	// If the config file doesn't exist, create a default one
 	if !util.FileExists(s.cfgFileName) {
@@ -559,9 +559,9 @@ func (s *ServerCmd) configInit() (err error) {
 		if err != nil {
 			return errors.WithMessage(err, "Failed to create default configuration file")
 		}
-		log.Infof("Created default configuration file at %s", s.cfgFileName)
+		zclog.Infof("===== Created default configuration file at %s", s.cfgFileName)
 	} else {
-		log.Infof("Configuration file location: %s", s.cfgFileName)
+		zclog.Infof("===== Configuration file location: %s", s.cfgFileName)
 	}
 
 	// Read the config
@@ -629,12 +629,12 @@ func (s *ServerCmd) createDefaultConfigFile() error {
 		// Create the default config, but only if they provided this bootstrap
 		// username and password.
 		up := s.myViper.GetString("boot")
-		log.Infof("===== cmd/fabric-ca-server/config.go createDefaultConfigFile up: %s", up)
+		zclog.Infof("===== up: %s", up)
 		if up == "" {
 			return errors.New("The '-b user:pass' option is required")
 		}
 		ups := strings.Split(up, ":")
-		log.Infof("===== cmd/fabric-ca-server/config.go createDefaultConfigFile ups: %s", ups)
+		zclog.Infof("===== ups: %s", ups)
 		if len(ups) < 2 {
 			return errors.Errorf("The value '%s' on the command line is missing a colon separator", up)
 		}
@@ -664,7 +664,7 @@ func (s *ServerCmd) createDefaultConfigFile() error {
 	cfg = strings.Replace(cfg, "<<<ADMINPW>>>", pass, 1)
 	cfg = strings.Replace(cfg, "<<<MYHOST>>>", myhost, 1)
 	purl := s.myViper.GetString("intermediate.parentserver.url")
-	log.Debugf("parent server URL: '%s'", util.GetMaskedURL(purl))
+	zclog.Debugf("===== parent server URL: '%s'", util.GetMaskedURL(purl))
 	if purl == "" {
 		// This is a root CA
 		cfg = strings.Replace(cfg, "<<<COMMONNAME>>>", "fabric-ca-server", 1)

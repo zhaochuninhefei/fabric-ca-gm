@@ -13,12 +13,12 @@ import (
 	"regexp"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/go-sql-driver/mysql"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )

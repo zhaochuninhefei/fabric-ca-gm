@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
@@ -19,6 +18,7 @@ import (
 	cadbutil "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/spi"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/jmoiron/sqlx"
 	"github.com/kisielk/sqlstruct"
 	"github.com/pkg/errors"

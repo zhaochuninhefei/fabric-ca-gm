@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )

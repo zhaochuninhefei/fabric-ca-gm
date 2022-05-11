@@ -15,12 +15,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
@@ -52,13 +52,13 @@ func LoadPEMCertPool(certFiles []string) (*x509.CertPool, error) {
 
 	if len(certFiles) > 0 {
 		for _, cert := range certFiles {
-			log.Debugf("Reading cert file: %s", cert)
+			zclog.Debugf("Reading cert file: %s", cert)
 			pemCerts, err := ioutil.ReadFile(cert)
 			if err != nil {
 				return nil, err
 			}
 
-			log.Debugf("Appending cert %s to pool", cert)
+			zclog.Debugf("Appending cert %s to pool", cert)
 			if !certPool.AppendCertsFromPEM(pemCerts) {
 				return nil, errors.New("Failed to load cert pool")
 			}
@@ -103,7 +103,7 @@ func UnmarshalConfig(config interface{}, vp *viper.Viper, configFile string,
 //  ca配置>0,请求>ca配置,返回0和错误
 //  ca配置>0,请求>0且<=ca配置,返回请求值
 func getMaxEnrollments(userMaxEnrollments int, caMaxEnrollments int) (int, error) {
-	log.Debugf("Max enrollment value verification - User specified max enrollment: %d, CA max enrollment: %d", userMaxEnrollments, caMaxEnrollments)
+	zclog.Debugf("Max enrollment value verification - User specified max enrollment: %d, CA max enrollment: %d", userMaxEnrollments, caMaxEnrollments)
 	if userMaxEnrollments < -1 {
 		return 0, caerrors.NewHTTPErr(400, caerrors.ErrInvalidMaxEnroll, "Max enrollment in registration request may not be less than -1, but was %d", userMaxEnrollments)
 	}
@@ -207,7 +207,7 @@ func (cd *CertificateDecoder) CertificateDecoder(decoder *json.Decoder) error {
 	if err != nil {
 		return err
 	}
-	log.Infof("===== lib/util.go CertificateDecoder 证书内容: \n%s\n", result)
+	zclog.Infof("===== lib/util.go CertificateDecoder 证书内容: \n%s\n", result)
 	return nil
 }
 

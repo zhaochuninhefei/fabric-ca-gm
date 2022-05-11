@@ -21,11 +21,11 @@ import (
 	"net/url"
 	"path"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

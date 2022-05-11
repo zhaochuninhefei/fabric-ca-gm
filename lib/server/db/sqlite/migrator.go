@@ -7,10 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package sqlite
 
 import (
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

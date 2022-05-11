@@ -11,15 +11,14 @@ import (
 	"fmt"
 	"strconv"
 
-	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
-
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential/idemix"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential/x509"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

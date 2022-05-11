@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"time"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	fp256bn "github.com/hyperledger/fabric-amcl/amcl/FP256BN"
 	"github.com/pkg/errors"
 )

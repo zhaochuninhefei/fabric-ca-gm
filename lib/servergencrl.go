@@ -14,13 +14,12 @@ import (
 	"math/big"
 	"time"
 
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
 	"gitee.com/zhaochuninhefei/cfssl-gm/crl"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

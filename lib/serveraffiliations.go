@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
@@ -19,6 +18,7 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/spi"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

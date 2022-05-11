@@ -14,11 +14,11 @@ import (
 
 	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
 	certsql "gitee.com/zhaochuninhefei/cfssl-gm/certdb/sql"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	cr "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/certificaterequest"
 	cadb "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	dbutil "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/jmoiron/sqlx"
 	"github.com/kisielk/sqlstruct"
 	"github.com/pkg/errors"

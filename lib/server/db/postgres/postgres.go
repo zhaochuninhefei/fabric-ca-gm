@@ -13,10 +13,10 @@ import (
 	"regexp"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // import to support Postgres
 	"github.com/pkg/errors"
@@ -86,7 +86,7 @@ func (p *Postgres) Connect() error {
 		if err == nil {
 			break
 		}
-		log.Warningf("Failed to connect to database '%s'", dbName)
+		log.Warnf("Failed to connect to database '%s'", dbName)
 	}
 
 	if err != nil {

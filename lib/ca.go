@@ -21,7 +21,6 @@ import (
 	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
 	"gitee.com/zhaochuninhefei/cfssl-gm/config"
 	cfcsr "gitee.com/zhaochuninhefei/cfssl-gm/csr"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	cflocalsigner "gitee.com/zhaochuninhefei/cfssl-gm/signer/local"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
@@ -43,6 +42,7 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 
@@ -112,7 +112,7 @@ func newCA(caFile string, config *CAConfig, server *Server, renew bool) (*CA, er
 	if err != nil {
 		err2 := ca.closeDB()
 		if err2 != nil {
-			log.Errorf("Close DB failed: %s", err2)
+			zclog.Errorf("Close DB failed: %s", err2)
 		}
 		return nil, err
 	}
@@ -129,7 +129,7 @@ func initCA(ca *CA, homeDir string, config *CAConfig, server *Server, renew bool
 	if err != nil {
 		return err
 	}
-	log.Debug("Initializing Idemix issuer...")
+	zclog.Debug("Initializing Idemix issuer...")
 	ca.issuer = idemix.NewIssuer(ca.Config.CA.Name, ca.HomeDir,
 		&ca.Config.Idemix, ca.csp, idemix.NewLib())
 	err = ca.issuer.Init(renew, ca.db, ca.levels)
@@ -141,10 +141,10 @@ func initCA(ca *CA, homeDir string, config *CAConfig, server *Server, renew bool
 
 // Init initializes an instance of a CA
 func (ca *CA) init(renew bool) (err error) {
-	log.Debugf("Init CA with home %s and config %+v", ca.HomeDir, *ca.Config)
+	zclog.Debugf("Init CA with home %s and config %+v", ca.HomeDir, *ca.Config)
 
 	// Initialize the config, setting defaults, etc
-	// log.Info("===== lib/ca.go init ca.Config.CSP.ProviderName = ", ca.Config.CSP.ProviderName)
+	// zclog.Info("===== ca.Config.CSP.ProviderName = ", ca.Config.CSP.ProviderName)
 	SetProviderName(ca.Config.CSP.ProviderName)
 	err = ca.initConfig()
 	if err != nil {
@@ -166,7 +166,7 @@ func (ca *CA) init(renew bool) (err error) {
 	// Initialize the database
 	err = ca.initDB(ca.server.dbMetrics)
 	if err != nil {
-		log.Error("Error occurred initializing database: ", err)
+		zclog.Error("Error occurred initializing database: ", err)
 		// Return if a server configuration error encountered (e.g. Invalid max enrollment for a bootstrap user)
 		if caerrors.IsFatalError(err) {
 			return err
@@ -179,7 +179,7 @@ func (ca *CA) init(renew bool) (err error) {
 	}
 	// Create the attribute manager
 	ca.attrMgr = attrmgr.New()
-	log.Debug("CA initialization successful")
+	zclog.Debug("CA initialization successful")
 	// Successful initialization
 	return nil
 }
@@ -187,7 +187,7 @@ func (ca *CA) init(renew bool) (err error) {
 // Initialize the CA's key material
 // 初始化 CA 的密钥材料
 func (ca *CA) initKeyMaterial(renew bool) error {
-	log.Debug("===== lib/ca.go initKeyMaterial Initialize key material")
+	zclog.Debug("===== Initialize key material")
 
 	// Make the path names absolute in the config
 	err := ca.makeFileNamesAbsolute()
@@ -204,9 +204,9 @@ func (ca *CA) initKeyMaterial(renew bool) error {
 		keyFileExists := util.FileExists(keyFile)
 		certFileExists := util.FileExists(certFile)
 		if keyFileExists && certFileExists {
-			log.Info("The CA key and certificate files already exist")
-			log.Infof("Key file location: %s", keyFile)
-			log.Infof("Certificate file location: %s", certFile)
+			zclog.Info("The CA key and certificate files already exist")
+			zclog.Infof("Key file location: %s", keyFile)
+			zclog.Infof("Certificate file location: %s", certFile)
 			err = ca.validateCertAndKey(certFile, keyFile)
 			if err != nil {
 				return errors.WithMessage(err, "Validation of certificate and key failed")
@@ -229,9 +229,9 @@ func (ca *CA) initKeyMaterial(renew bool) error {
 				return errors.WithMessage(err, fmt.Sprintf("Failed to find private key for certificate in '%s'", certFile))
 			}
 			// Yes, it is stored by BCCSP
-			log.Info("The CA key and certificate already exist")
-			log.Infof("The key is stored by BCCSP provider '%s'", ca.Config.CSP.ProviderName)
-			log.Infof("The certificate is at: %s", certFile)
+			zclog.Info("The CA key and certificate already exist")
+			zclog.Infof("The key is stored by BCCSP provider '%s'", ca.Config.CSP.ProviderName)
+			zclog.Infof("The certificate is at: %s", certFile)
 			// Load CN from existing enrollment information and set CSR accordingly
 			// CN needs to be set, having a multi CA setup requires a unique CN and can't
 			// be left blank
@@ -241,7 +241,7 @@ func (ca *CA) initKeyMaterial(renew bool) error {
 			}
 			return nil
 		}
-		log.Warning(caerrors.NewServerError(caerrors.ErrCACertFileNotFound, "The specified CA certificate file %s does not exist", certFile))
+		zclog.Warn(caerrors.NewServerError(caerrors.ErrCACertFileNotFound, "The specified CA certificate file %s does not exist", certFile))
 	}
 
 	// 获取CA根证书
@@ -254,9 +254,9 @@ func (ca *CA) initKeyMaterial(renew bool) error {
 	if err != nil {
 		return errors.Wrap(err, "Failed to store certificate")
 	}
-	log.Infof("===== lib/ca.go initKeyMaterial The CA key and certificate were generated for CA %s", ca.Config.CA.Name)
-	log.Infof("===== lib/ca.go initKeyMaterial The key was stored by BCCSP provider '%s'", ca.Config.CSP.ProviderName)
-	log.Infof("===== lib/ca.go initKeyMaterial The certificate is at: %s", certFile)
+	zclog.Infof("===== The CA key and certificate were generated for CA %s", ca.Config.CA.Name)
+	zclog.Infof("===== The key was stored by BCCSP provider '%s'", ca.Config.CSP.ProviderName)
+	zclog.Infof("===== The certificate is at: %s", certFile)
 
 	return nil
 }
@@ -266,7 +266,7 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 	if ca.Config.Intermediate.ParentServer.URL != "" {
 		// This is an intermediate CA, so call the parent fabric-ca-server
 		// to get the cert
-		log.Debugf("===== lib/ca.go getCACert CA配置有父证书 parent server URL is %s", util.GetMaskedURL(ca.Config.Intermediate.ParentServer.URL))
+		zclog.Debugf("===== CA配置有父证书 parent server URL is %s", util.GetMaskedURL(ca.Config.Intermediate.ParentServer.URL))
 		clientCfg := ca.Config.Client
 		if clientCfg == nil {
 			clientCfg = &ClientConfig{}
@@ -290,7 +290,7 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 		if clientCfg.Enrollment.CSR.CA == nil {
 			clientCfg.Enrollment.CSR.CA = &cfcsr.CAConfig{PathLength: 0, PathLenZero: true}
 		}
-		log.Debugf("Intermediate enrollment request: %+v, CSR: %+v, CA: %+v",
+		zclog.Debugf("Intermediate enrollment request: %+v, CSR: %+v, CA: %+v",
 			clientCfg.Enrollment, clientCfg.Enrollment.CSR, clientCfg.Enrollment.CSR.CA)
 		var resp *EnrollmentResponse
 		resp, err = clientCfg.Enroll(ca.Config.Intermediate.ParentServer.URL, ca.HomeDir)
@@ -318,9 +318,9 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 		if err != nil {
 			return nil, errors.WithMessage(err, "Failed to create intermediate chain file")
 		}
-		log.Debugf("Stored intermediate certificate chain at %s", chainPath)
+		zclog.Debugf("Stored intermediate certificate chain at %s", chainPath)
 	} else {
-		log.Debug("===== lib/ca.go getCACert CA没有配置父证书 需要生成自签名的CA根证书")
+		zclog.Debug("===== CA没有配置父证书 需要生成自签名的CA根证书")
 		// This is a root CA, so create a CSR (Certificate Signing Request)
 		if ca.Config.CSR.CN == "" {
 			ca.Config.CSR.CN = "fabric-ca-server"
@@ -350,7 +350,7 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 			CA:           csr.CA,
 			SerialNumber: csr.SerialNumber,
 		}
-		log.Debugf("Root CA certificate request: %+v", req)
+		zclog.Debugf("Root CA certificate request: %+v", req)
 		// Generate the key/signer
 		// TODO 后续国密分支需要获取key
 		key, cspSigner, err := util.BCCSPKeyRequestGenerate(&req, ca.csp)
@@ -425,7 +425,7 @@ func (ca *CA) initConfig() (err error) {
 			return errors.Wrap(err, "Failed to initialize CA's home directory")
 		}
 	}
-	log.Debugf("CA Home Directory: %s", ca.HomeDir)
+	zclog.Debugf("CA Home Directory: %s", ca.HomeDir)
 	// Init config if not set
 	if ca.Config == nil {
 		ca.Config = new(CAConfig)
@@ -477,9 +477,9 @@ func (ca *CA) initConfig() (err error) {
 		return err
 	}
 	// Set log level if debug is true
-	if ca.server != nil && ca.server.Config != nil && ca.server.Config.Debug {
-		log.Level = log.LevelDebug
-	}
+	// if ca.server != nil && ca.server.Config != nil && ca.server.Config.Debug {
+	// 	log.Level = log.LevelDebug
+	// }
 	ca.normalizeStringSlices()
 
 	return nil
@@ -523,7 +523,7 @@ func getVerifyOptions(ca *CA) (*x509.VerifyOptions, error) {
 // if true, it will force the time to be used to check for expiry to be 30 seconds
 // after the certificate start time.  (this is to support reenrollIgnoreCertExpiry)
 func (ca *CA) VerifyCertificate(cert *x509.Certificate, forceTime bool) error {
-	// log.Debugf("===== lib/ca.go VerifyCertificate Certicate Dates: NotAfter = %s NotBefore = %s \n", cert.NotAfter.Format(time.RFC3339), cert.NotBefore.Format(time.RFC3339))
+	// zclog.Debugf("===== Certicate Dates: NotAfter = %s NotBefore = %s \n", cert.NotAfter.Format(time.RFC3339), cert.NotBefore.Format(time.RFC3339))
 	// 从CA配置获取检查参数
 	opts, err := getVerifyOptions(ca)
 	// opts, err := ca.getVerifyOptions()
@@ -535,17 +535,10 @@ func (ca *CA) VerifyCertificate(cert *x509.Certificate, forceTime bool) error {
 	if forceTime {
 		opts.CurrentTime = cert.NotBefore.Add(time.Duration(time.Second * 30))
 	}
-	// log.Debugf("===== lib/ca.go VerifyCertificate before cert.Verify: NotAfter=%s NotBefore=%s opts.CurrentTime=%s", cert.NotAfter.Format(time.RFC3339), cert.NotBefore.Format(time.RFC3339), opts.CurrentTime.Format(time.RFC3339))
-	// if opts.CurrentTime.After(cert.NotAfter) {
-	// 	log.Debugf("===== 见鬼了 opts.CurrentTime: %s , cert.NotAfter: %s", opts.CurrentTime.Format(time.RFC3339), cert.NotAfter.Format(time.RFC3339))
-	// 	log.Debugf("===== 见鬼了 opts.CurrentTime: %#v , cert.NotAfter: %#v", opts.CurrentTime, cert.NotAfter)
-	// }
-	// log.Debugf("===== lib/ca.go VerifyCertificate before cert.Verify: opts.Intermediates= %#v", opts.Intermediates)
 	// 尝试从ca的根证书构建cert的信任链，成功则说明cert是由ca直接或间接签署的。
 	// 目前应该都是直接签署的。即证书信任链长度只有2。
 	_, err = cert.Verify(*opts)
 	if err != nil {
-		// log.Debugf("===== lib/ca.go VerifyCertificate after cert.Verify: NotAfter=%s NotBefore=%s opts.CurrentTime=%s", cert.NotAfter.Format(time.RFC3339), cert.NotBefore.Format(time.RFC3339), opts.CurrentTime.Format(time.RFC3339))
 		return errors.WithMessage(err, "Failed to verify certificate")
 	}
 	return nil
@@ -607,7 +600,7 @@ func (ca *CA) getVerifyOptions() (*x509.VerifyOptions, error) {
 
 // Initialize the database for the CA
 func (ca *CA) initDB(metrics *db.Metrics) error {
-	log.Debug("Initializing DB")
+	zclog.Debug("Initializing DB")
 
 	// If DB is initialized, don't need to proceed further
 	if ca.db != nil && ca.db.IsInitialized() {
@@ -644,7 +637,7 @@ func (ca *CA) initDB(metrics *db.Metrics) error {
 	ds := dbCfg.Datasource
 	ds = dbutil.MaskDBCred(ds)
 
-	log.Debugf("Initializing '%s' database at '%s'", dbCfg.Type, ds)
+	zclog.Debugf("Initializing '%s' database at '%s'", dbCfg.Type, ds)
 	caDB, err := cadbfactory.New(
 		dbCfg.Type,
 		dbCfg.Datasource,
@@ -705,7 +698,7 @@ func (ca *CA) initDB(metrics *db.Metrics) error {
 	if !ca.Config.LDAP.Enabled {
 		err = ca.loadUsersTable()
 		if err != nil {
-			log.Error(err)
+			zclog.Error(err)
 			dbError = true
 			if caerrors.IsFatalError(err) {
 				return err
@@ -714,7 +707,7 @@ func (ca *CA) initDB(metrics *db.Metrics) error {
 
 		err = ca.loadAffiliationsTable()
 		if err != nil {
-			log.Error(err)
+			zclog.Error(err)
 			dbError = true
 		}
 	}
@@ -724,7 +717,7 @@ func (ca *CA) initDB(metrics *db.Metrics) error {
 	}
 
 	ca.db.SetDBInitialized(true)
-	log.Infof("Initialized %s database at %s", dbCfg.Type, ds)
+	zclog.Infof("Initialized %s database at %s", dbCfg.Type, ds)
 
 	return nil
 }
@@ -743,31 +736,31 @@ func (ca *CA) closeDB() error {
 
 // Initialize the user registry interface
 func (ca *CA) initUserRegistry() error {
-	log.Debug("Initializing identity registry")
+	zclog.Debug("Initializing identity registry")
 	var err error
 	ldapCfg := &ca.Config.LDAP
 
 	if ldapCfg.Enabled {
 		// Use LDAP for the user registry
 		ca.registry, err = ldap.NewClient(ldapCfg, ca.server.csp)
-		log.Debugf("Initialized LDAP identity registry; err=%s", err)
+		zclog.Debugf("Initialized LDAP identity registry; err=%s", err)
 		if err == nil {
-			log.Info("Successfully initialized LDAP client")
+			zclog.Info("Successfully initialized LDAP client")
 		} else {
-			log.Warningf("Failed to initialize LDAP client; err=%s", err)
+			zclog.Warnf("Failed to initialize LDAP client; err=%s", err)
 		}
 		return err
 	}
 
 	// Use the DB for the user registry
 	ca.registry = NewDBAccessor(ca.db)
-	log.Debug("Initialized DB identity registry")
+	zclog.Debug("Initialized DB identity registry")
 	return nil
 }
 
 // Initialize the enrollment signer
 func (ca *CA) initEnrollmentSigner() (err error) {
-	log.Debug("Initializing enrollment signer")
+	zclog.Debug("Initializing enrollment signer")
 	c := ca.Config
 
 	// If there is a config, use its signing policy. Otherwise create a default policy.
@@ -803,27 +796,27 @@ func (ca *CA) initEnrollmentSigner() (err error) {
 
 // loadUsersTable adds the configured users to the table if not already found
 func (ca *CA) loadUsersTable() error {
-	log.Debug("Loading identity table")
+	zclog.Debug("Loading identity table")
 	registry := &ca.Config.Registry
 	for _, id := range registry.Identities {
-		log.Debugf("Loading identity '%s'", id.Name)
+		zclog.Debugf("Loading identity '%s'", id.Name)
 		err := ca.addIdentity(&id, false)
 		if err != nil {
 			return errors.WithMessage(err, "Failed to load identity table")
 		}
 	}
-	log.Debug("Successfully loaded identity table")
+	zclog.Debug("Successfully loaded identity table")
 	return nil
 }
 
 // loadAffiliationsTable adds the configured affiliations to the table
 func (ca *CA) loadAffiliationsTable() error {
-	log.Debug("Loading affiliations table")
+	zclog.Debug("Loading affiliations table")
 	err := ca.loadAffiliationsTableR(ca.Config.Affiliations, "")
 	if err != nil {
 		return errors.WithMessage(err, "Failed to load affiliations table")
 	}
-	log.Debug("Successfully loaded affiliations table")
+	zclog.Debug("Successfully loaded affiliations table")
 	return nil
 }
 
@@ -878,7 +871,7 @@ func (ca *CA) addIdentity(id *CAConfigIdentity, errIfFound bool) error {
 		if errIfFound {
 			return errors.Errorf("Identity '%s' is already registered", id.Name)
 		}
-		log.Debugf("Identity '%s' already registered, loaded identity", user.GetName())
+		zclog.Debugf("Identity '%s' already registered, loaded identity", user.GetName())
 		return nil
 	}
 
@@ -906,7 +899,7 @@ func (ca *CA) addIdentity(id *CAConfigIdentity, errIfFound bool) error {
 	if err != nil {
 		return errors.WithMessage(err, fmt.Sprintf("Failed to insert identity '%s'", id.Name))
 	}
-	log.Debugf("Registered identity: %+v", id)
+	zclog.Debugf("Registered identity: %+v", id)
 	return nil
 }
 
@@ -947,7 +940,7 @@ func (ca *CA) GetCertificate(serial, aki string) (*certdb.CertificateRecord, err
 
 // Make all file names in the CA config absolute
 func (ca *CA) makeFileNamesAbsolute() error {
-	log.Debug("Making CA filenames absolute")
+	zclog.Debug("Making CA filenames absolute")
 
 	fields := []*string{
 		&ca.Config.CA.Certfile,
@@ -1016,7 +1009,7 @@ func (ca *CA) attributeIsTrue(username, attrname string) error {
 
 // getUserAttrValue returns a user's value for an attribute
 func (ca *CA) getUserAttrValue(username, attrname string) (string, error) {
-	log.Debugf("getUserAttrValue identity=%s, attr=%s", username, attrname)
+	zclog.Debugf("getUserAttrValue identity=%s, attr=%s", username, attrname)
 	userFromCaDB, err := ca.registry.GetUser(username, []string{attrname})
 	if err != nil {
 		return "", err
@@ -1025,19 +1018,19 @@ func (ca *CA) getUserAttrValue(username, attrname string) (string, error) {
 	if err != nil {
 		return "", errors.WithMessage(err, fmt.Sprintf("Failed to get attribute '%s' for user '%s'", attrname, userFromCaDB.GetName()))
 	}
-	log.Debugf("getUserAttrValue identity=%s, name=%s, value=%s", username, attrname, attrval)
+	zclog.Debugf("getUserAttrValue identity=%s, name=%s, value=%s", username, attrname, attrval)
 	return attrval.Value, nil
 }
 
 // getUserAffiliation returns a user's affiliation
 func (ca *CA) getUserAffiliation(username string) (string, error) {
-	log.Debugf("getUserAffiliation identity=%s", username)
+	zclog.Debugf("getUserAffiliation identity=%s", username)
 	user, err := ca.registry.GetUser(username, nil)
 	if err != nil {
 		return "", err
 	}
 	aff := cadbuser.GetAffiliation(user)
-	log.Debugf("getUserAffiliation identity=%s, aff=%s", username, aff)
+	zclog.Debugf("getUserAffiliation identity=%s, aff=%s", username, aff)
 	return aff, nil
 }
 
@@ -1065,7 +1058,7 @@ func (ca *CA) fillCAInfo(info *api.CAInfoResponseNet) error {
 
 // Performs checks on the provided CA cert to make sure it's valid
 func (ca *CA) validateCertAndKey(certFile string, keyFile string) error {
-	log.Debug("Validating the CA certificate and key")
+	zclog.Debug("Validating the CA certificate and key")
 	var err error
 	var certPEM []byte
 
@@ -1097,7 +1090,7 @@ func (ca *CA) validateCertAndKey(certFile string, keyFile string) error {
 	if err = validateMatchingKeys(cert, keyFile); err != nil {
 		return errors.WithMessage(err, fmt.Sprintf("Invalid certificate and/or key in files '%s' and '%s'", certFile, keyFile))
 	}
-	log.Debug("Validation of CA certificate and key successful")
+	zclog.Debug("Validation of CA certificate and key successful")
 
 	return nil
 }
@@ -1110,14 +1103,14 @@ func (ca *CA) getCACertExpiry() (time.Time, time.Time, error) {
 	if ok {
 		cacert, err := signer.Certificate("", "ca")
 		if err != nil {
-			log.Errorf("Failed to get CA certificate for CA %s: %s", ca.Config.CA.Name, err)
+			zclog.Errorf("Failed to get CA certificate for CA %s: %s", ca.Config.CA.Name, err)
 			return notBefore, notAfter, err
 		} else if cacert != nil {
 			notAfter = cacert.NotAfter
 			notBefore = cacert.NotBefore
 		}
 	} else {
-		log.Errorf("Not expected condition as the enrollSigner can only be cfssl/signer/local/Signer")
+		zclog.Errorf("Not expected condition as the enrollSigner can only be cfssl/signer/local/Signer")
 		return notBefore, notAfter, errors.New("Unexpected error while getting CA certificate expiration")
 	}
 	return notBefore, notAfter, nil
@@ -1128,7 +1121,7 @@ func canSignCRL(cert *x509.Certificate) bool {
 }
 
 func validateDates(cert *x509.Certificate) error {
-	log.Debug("Check CA certificate for valid dates")
+	zclog.Debug("Check CA certificate for valid dates")
 
 	notAfter := cert.NotAfter
 	currentTime := time.Now().UTC()
@@ -1146,7 +1139,7 @@ func validateDates(cert *x509.Certificate) error {
 }
 
 func validateUsage(cert *x509.Certificate, caName string) error {
-	log.Debug("Check CA certificate for valid usages")
+	zclog.Debug("Check CA certificate for valid usages")
 
 	if cert.KeyUsage == 0 {
 		return errors.New("No usage specified for certificate")
@@ -1157,13 +1150,13 @@ func validateUsage(cert *x509.Certificate, caName string) error {
 	}
 
 	if !canSignCRL(cert) {
-		log.Warningf("The CA certificate for the CA '%s' does not have 'crl sign' key usage, so the CA will not be able generate a CRL", caName)
+		zclog.Warnf("The CA certificate for the CA '%s' does not have 'crl sign' key usage, so the CA will not be able generate a CRL", caName)
 	}
 	return nil
 }
 
 func validateIsCA(cert *x509.Certificate) error {
-	log.Debug("Check CA certificate for valid IsCA value")
+	zclog.Debug("Check CA certificate for valid IsCA value")
 
 	if !cert.IsCA {
 		return errors.New("Certificate not configured to be used for CA")
@@ -1174,7 +1167,7 @@ func validateIsCA(cert *x509.Certificate) error {
 
 // 国密改造后只支持sm2
 func validateKeyType(cert *x509.Certificate) error {
-	log.Debug("Check that key type is supported")
+	zclog.Debug("Check that key type is supported")
 
 	switch cert.PublicKey.(type) {
 	case *sm2.PublicKey:
@@ -1185,7 +1178,7 @@ func validateKeyType(cert *x509.Certificate) error {
 }
 
 func validateKeySize(cert *x509.Certificate) error {
-	log.Debug("Check that key size is of appropriate length")
+	zclog.Debug("Check that key size is of appropriate length")
 
 	switch cert.PublicKey.(type) {
 	// case *rsa.PublicKey:
@@ -1205,7 +1198,7 @@ func validateKeySize(cert *x509.Certificate) error {
 
 // 国密对应后只支持sm2
 func validateMatchingKeys(cert *x509.Certificate, keyFile string) error {
-	log.Debug("Check that public key and private key match")
+	zclog.Debug("Check that public key and private key match")
 
 	keyPEM, err := ioutil.ReadFile(keyFile)
 	if err != nil {
@@ -1263,10 +1256,10 @@ func validateMatchingKeys(cert *x509.Certificate, keyFile string) error {
 
 // Load CN from existing enrollment information
 func (ca *CA) loadCNFromEnrollmentInfo(certFile string) (string, error) {
-	log.Debug("Loading CN from existing enrollment information")
+	zclog.Debug("Loading CN from existing enrollment information")
 	cert, err := util.ReadFile(certFile)
 	if err != nil {
-		log.Debugf("No cert found at %s", certFile)
+		zclog.Debugf("No cert found at %s", certFile)
 		return "", err
 	}
 	name, err := util.GetEnrollmentIDFromPEM(cert)
@@ -1281,7 +1274,7 @@ func (ca *CA) checkConfigLevels() error {
 	var err error
 	serverVersion := metadata.GetVersion()
 	configVersion := ca.Config.Version
-	log.Debugf("Checking configuration file version '%+v' against server version: '%+v'", configVersion, serverVersion)
+	zclog.Debugf("Checking configuration file version '%+v' against server version: '%+v'", configVersion, serverVersion)
 	// Check configuration file version against server version to make sure that newer configuration file is not being used with server
 	cmp, err := metadata.CmpVersion(configVersion, serverVersion)
 	if err != nil {
@@ -1308,7 +1301,7 @@ func (ca *CA) checkDBLevels() error {
 	if err != nil {
 		return err
 	}
-	log.Debugf("Checking database levels '%+v' against server levels '%+v'", levels, sl)
+	zclog.Debugf("Checking database levels '%+v' against server levels '%+v'", levels, sl)
 	if (levels.Identity > sl.Identity) || (levels.Affiliation > sl.Affiliation) || (levels.Certificate > sl.Certificate) ||
 		(levels.Credential > sl.Credential) || (levels.Nonce > sl.Nonce) || (levels.RAInfo > sl.RAInfo) {
 		return caerrors.NewFatalError(caerrors.ErrDBLevel, "The version of the database is newer than the server version.  Upgrade your server.")

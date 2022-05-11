@@ -9,11 +9,10 @@ package lib
 import (
 	"encoding/json"
 
-	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
-
 	"gitee.com/zhaochuninhefei/cfssl-gm/api"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 )
 
 // serverEndpoint represents a particular endpoint (e.g. to "/api/v1/enroll")

@@ -16,13 +16,12 @@ import (
 	"regexp"
 	"testing"
 
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/metadata"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
@@ -372,19 +371,19 @@ func TestServerLogLevelCLI(t *testing.T) {
 	// Not passing in -b flag, don't need for the server to completely start to
 	// verify that the log level is correctly getting set
 	RunMain([]string{cmdName, "start", "--loglevel", "info"})
-	assert.Equal(t, log.Level, log.LevelInfo)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_INFO)
 
 	RunMain([]string{cmdName, "start", "--loglevel", "debug"})
-	assert.Equal(t, log.Level, log.LevelDebug)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_DEBUG)
 
 	RunMain([]string{cmdName, "start", "--loglevel", "warning"})
-	assert.Equal(t, log.Level, log.LevelWarning)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_WARNING)
 
 	RunMain([]string{cmdName, "start", "--loglevel", "fatal"})
-	assert.Equal(t, log.Level, log.LevelFatal)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_FATAL)
 
-	RunMain([]string{cmdName, "start", "--loglevel", "critical"})
-	assert.Equal(t, log.Level, log.LevelCritical)
+	RunMain([]string{cmdName, "start", "--loglevel", "panic"})
+	assert.Equal(t, log.Level, log.LOG_LEVEL_PANIC)
 }
 
 func TestServerLogLevelEnvVar(t *testing.T) {
@@ -392,23 +391,23 @@ func TestServerLogLevelEnvVar(t *testing.T) {
 	// verify that the log level is correctly getting set
 	os.Setenv("FABRIC_CA_SERVER_LOGLEVEL", "info")
 	RunMain([]string{cmdName, "start"})
-	assert.Equal(t, log.LevelInfo, log.Level)
+	assert.Equal(t, log.LOG_LEVEL_INFO, log.Level)
 
 	os.Setenv("FABRIC_CA_SERVER_LOGLEVEL", "debug")
 	RunMain([]string{cmdName, "start"})
-	assert.Equal(t, log.LevelDebug, log.Level)
+	assert.Equal(t, log.LOG_LEVEL_DEBUG, log.Level)
 
 	os.Setenv("FABRIC_CA_SERVER_LOGLEVEL", "warning")
 	RunMain([]string{cmdName, "start"})
-	assert.Equal(t, log.LevelWarning, log.Level)
+	assert.Equal(t, log.LOG_LEVEL_WARNING, log.Level)
 
 	os.Setenv("FABRIC_CA_SERVER_LOGLEVEL", "fatal")
 	RunMain([]string{cmdName, "start"})
-	assert.Equal(t, log.LevelFatal, log.Level)
+	assert.Equal(t, log.LOG_LEVEL_FATAL, log.Level)
 
-	os.Setenv("FABRIC_CA_SERVER_LOGLEVEL", "critical")
+	os.Setenv("FABRIC_CA_SERVER_LOGLEVEL", "panic")
 	RunMain([]string{cmdName, "start"})
-	assert.Equal(t, log.LevelCritical, log.Level)
+	assert.Equal(t, log.LOG_LEVEL_PANIC, log.Level)
 }
 
 // Run server with specified args and check if the configuration and datasource

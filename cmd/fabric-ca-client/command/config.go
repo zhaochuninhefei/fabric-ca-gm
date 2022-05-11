@@ -16,12 +16,12 @@ import (
 	"strings"
 
 	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	calog "gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

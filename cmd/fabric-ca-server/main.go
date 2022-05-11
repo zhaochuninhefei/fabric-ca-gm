@@ -16,7 +16,11 @@ limitations under the License.
 
 package main
 
-import "os"
+import (
+	"os"
+
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
+)
 
 var (
 	blockingStart = true
@@ -31,6 +35,7 @@ func main() {
 
 // RunMain is the fabric-ca server main
 func RunMain(args []string) error {
+	initZcgolog()
 	// Save the os.Args
 	saveOsArgs := os.Args
 	os.Args = args
@@ -48,4 +53,14 @@ func RunMain(args []string) error {
 	os.Args = saveOsArgs
 
 	return err
+}
+
+func initZcgolog() {
+	zcgologConf := &zclog.Config{
+		LogFileDir:        "/logs",
+		LogFileNamePrefix: "fabric-ca-server-zcgolog",
+		LogLevelGlobal:    zclog.LOG_LEVEL_INFO,
+		LogMod:            zclog.LOG_MODE_SERVER,
+	}
+	zclog.InitLogger(zcgologConf)
 }

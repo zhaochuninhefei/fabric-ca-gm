@@ -7,13 +7,13 @@ package ldap
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	ber "gopkg.in/asn1-ber.v1"
 )
 
@@ -180,7 +180,7 @@ func (l *Conn) Close() {
 
 		l.Debug.Printf("Closing network connection")
 		if err := l.conn.Close(); err != nil {
-			log.Println(err)
+			log.Error(err)
 		}
 
 		l.wgClose.Done()
@@ -335,7 +335,7 @@ func (l *Conn) sendProcessMessage(message *messagePacket) bool {
 func (l *Conn) processMessages() {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("ldap: recovered panic in processMessages: %v", err)
+			log.Errorf("ldap: recovered panic in processMessages: %v", err)
 		}
 		for messageID, msgCtx := range l.messageContexts {
 			// If we are closing due to an error, inform anyone who
@@ -384,7 +384,7 @@ func (l *Conn) processMessages() {
 					go func() {
 						defer func() {
 							if err := recover(); err != nil {
-								log.Printf("ldap: recovered panic in RequestTimeout: %v", err)
+								log.Errorf("ldap: recovered panic in RequestTimeout: %v", err)
 							}
 						}()
 						time.Sleep(requestTimeout)
@@ -400,7 +400,7 @@ func (l *Conn) processMessages() {
 				if msgCtx, ok := l.messageContexts[message.MessageID]; ok {
 					msgCtx.sendResponse(&PacketResponse{message.Packet, nil})
 				} else {
-					log.Printf("Received unexpected message %d, %v", message.MessageID, l.isClosing())
+					log.Errorf("Received unexpected message %d, %v", message.MessageID, l.isClosing())
 					ber.PrintPacket(message.Packet)
 				}
 			case MessageTimeout:
@@ -427,7 +427,7 @@ func (l *Conn) reader() {
 	cleanstop := false
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("ldap: recovered panic in reader: %v", err)
+			log.Errorf("ldap: recovered panic in reader: %v", err)
 		}
 		if !cleanstop {
 			l.Close()

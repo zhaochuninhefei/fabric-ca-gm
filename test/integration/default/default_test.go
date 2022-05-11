@@ -19,17 +19,16 @@ import (
 	"testing"
 	"time"
 
-	"gitee.com/zhaochuninhefei/gmgo/sm2"
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
 	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
 	"gitee.com/zhaochuninhefei/cfssl-gm/config"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/cmd/fabric-ca-client/command"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/metadata"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
+	"gitee.com/zhaochuninhefei/gmgo/sm2"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )

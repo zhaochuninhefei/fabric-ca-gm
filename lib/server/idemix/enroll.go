@@ -11,11 +11,11 @@ import (
 	"strconv"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
 	"gitee.com/zhaochuninhefei/fabric-gm/idemix"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	proto "github.com/golang/protobuf/proto"
 	fp256bn "github.com/hyperledger/fabric-amcl/amcl/FP256BN"
 	"github.com/pkg/errors"

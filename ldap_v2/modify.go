@@ -31,8 +31,8 @@ package ldap
 
 import (
 	"errors"
-	"log"
 
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	ber "gopkg.in/asn1-ber.v1"
 )
 

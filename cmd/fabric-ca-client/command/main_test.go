@@ -25,10 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
 	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
@@ -38,6 +35,8 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db/sqlite"
 	cadbuser "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -2147,19 +2146,19 @@ func TestClientLogLevelCLI(t *testing.T) {
 	// Not passing in -u flag, don't need for the enroll to complete successfully to
 	// verify that the log level is correctly getting set
 	RunMain([]string{cmdName, "enroll", "--loglevel", "info"})
-	assert.Equal(t, log.Level, log.LevelInfo)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_INFO)
 
 	RunMain([]string{cmdName, "enroll", "--loglevel", "debug"})
-	assert.Equal(t, log.Level, log.LevelDebug)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_DEBUG)
 
 	RunMain([]string{cmdName, "enroll", "--loglevel", "warning"})
-	assert.Equal(t, log.Level, log.LevelWarning)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_WARNING)
 
 	RunMain([]string{cmdName, "enroll", "--loglevel", "fatal"})
-	assert.Equal(t, log.Level, log.LevelFatal)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_FATAL)
 
-	RunMain([]string{cmdName, "enroll", "--loglevel", "critical"})
-	assert.Equal(t, log.Level, log.LevelCritical)
+	RunMain([]string{cmdName, "enroll", "--loglevel", "panic"})
+	assert.Equal(t, log.Level, log.LOG_LEVEL_PANIC)
 }
 
 func TestClientLogLevelEnvVar(t *testing.T) {
@@ -2167,23 +2166,23 @@ func TestClientLogLevelEnvVar(t *testing.T) {
 	// verify that the log level is correctly getting set
 	os.Setenv("FABRIC_CA_CLIENT_LOGLEVEL", "info")
 	RunMain([]string{cmdName, "enroll"})
-	assert.Equal(t, log.Level, log.LevelInfo)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_INFO)
 
 	os.Setenv("FABRIC_CA_CLIENT_LOGLEVEL", "debug")
 	RunMain([]string{cmdName, "enroll"})
-	assert.Equal(t, log.Level, log.LevelDebug)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_DEBUG)
 
 	os.Setenv("FABRIC_CA_CLIENT_LOGLEVEL", "warning")
 	RunMain([]string{cmdName, "enroll"})
-	assert.Equal(t, log.Level, log.LevelWarning)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_WARNING)
 
 	os.Setenv("FABRIC_CA_CLIENT_LOGLEVEL", "fatal")
 	RunMain([]string{cmdName, "enroll"})
-	assert.Equal(t, log.Level, log.LevelFatal)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_FATAL)
 
-	os.Setenv("FABRIC_CA_CLIENT_LOGLEVEL", "critical")
+	os.Setenv("FABRIC_CA_CLIENT_LOGLEVEL", "panic")
 	RunMain([]string{cmdName, "enroll"})
-	assert.Equal(t, log.Level, log.LevelCritical)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_PANIC)
 }
 
 func TestCleanUp(t *testing.T) {

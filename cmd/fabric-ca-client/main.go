@@ -20,11 +20,23 @@ import (
 	"os"
 
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/cmd/fabric-ca-client/command"
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 )
 
 // The fabric-ca client main
 func main() {
+	initZcgolog()
 	if err := command.RunMain(os.Args); err != nil {
 		os.Exit(1)
 	}
+}
+
+func initZcgolog() {
+	zcgologConf := &zclog.Config{
+		LogFileDir:        "/logs",
+		LogFileNamePrefix: "fabric-ca-client-zcgolog",
+		LogLevelGlobal:    zclog.LOG_LEVEL_INFO,
+		LogMod:            zclog.LOG_MODE_LOCAL,
+	}
+	zclog.InitLogger(zcgologConf)
 }

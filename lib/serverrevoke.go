@@ -10,11 +10,11 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"golang.org/x/crypto/ocsp"
 )
 
@@ -166,7 +166,7 @@ func revokeHandler(ctx *serverRequestContextImpl) (interface{}, error) {
 		}
 
 		if len(recs) == 0 {
-			log.Warningf("No certificates were revoked for '%s' but the ID was disabled", req.Name)
+			log.Warnf("No certificates were revoked for '%s' but the ID was disabled", req.Name)
 		} else {
 			log.Debugf("Revoked the following certificates owned by '%s': %+v", req.Name, recs)
 			for _, certRec := range recs {

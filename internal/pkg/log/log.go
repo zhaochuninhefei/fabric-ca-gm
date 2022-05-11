@@ -9,18 +9,18 @@ package log
 import (
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 
 // Constants defined for the different log levels
 const (
-	INFO     = "info"
-	WARNING  = "warning"
-	DEBUG    = "debug"
-	ERROR    = "error"
-	FATAL    = "fatal"
-	CRITICAL = "critical"
+	DEBUG   = "debug"
+	INFO    = "info"
+	WARNING = "warning"
+	ERROR   = "error"
+	PANIC   = "panic"
+	FATAL   = "fatal"
 )
 
 // SetDefaultLogLevel sets the default log level
@@ -48,20 +48,20 @@ func setLogLevel(logLevel string, debug, override bool) error {
 
 	switch strings.ToLower(logLevel) {
 	case INFO:
-		log.Level = log.LevelInfo
+		log.Level = log.LOG_LEVEL_INFO
 	case WARNING:
-		log.Level = log.LevelWarning
+		log.Level = log.LOG_LEVEL_WARNING
 	case DEBUG:
-		log.Level = log.LevelDebug
+		log.Level = log.LOG_LEVEL_DEBUG
 	case ERROR:
-		log.Level = log.LevelError
-	case CRITICAL:
-		log.Level = log.LevelCritical
+		log.Level = log.LOG_LEVEL_ERROR
+	case PANIC:
+		log.Level = log.LOG_LEVEL_PANIC
 	case FATAL:
-		log.Level = log.LevelFatal
+		log.Level = log.LOG_LEVEL_FATAL
 	default:
 		log.Debug("Unrecognized log level, defaulting to 'info'")
-		log.Level = log.LevelInfo
+		log.Level = log.LOG_LEVEL_INFO
 	}
 
 	return nil

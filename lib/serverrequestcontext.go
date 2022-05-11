@@ -15,7 +15,6 @@ import (
 	"strings"
 
 	"gitee.com/zhaochuninhefei/cfssl-gm/config"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/cfssl-gm/revoke"
 	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
@@ -29,6 +28,7 @@ import (
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 	gmux "gitee.com/zhaochuninhefei/gmgo/mux"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -92,14 +92,14 @@ func (ctx *serverRequestContextImpl) BasicAuthentication() (string, error) {
 	if !ok {
 		return "", caerrors.NewAuthenticationErr(caerrors.ErrNoUserPass, "No user/pass in authorization header")
 	}
-	// fmt.Printf("===== lib/serverrequestcontext.go BasicAuthentication username: %s/n", username)
+	// zclog.Debugf("===== username: %s/n", username)
 	// Get the CA that is targeted by this request
 	ca, err := ctx.GetCA()
 	if err != nil {
 		return "", err
 	}
 	// Error if max enrollments is disabled for this CA
-	// log.Debugf("ca.Config: %+v", ca.Config)
+	// zclog.Debugf("ca.Config: %+v", ca.Config)
 	caMaxEnrollments := ca.Config.Registry.MaxEnrollments
 	if caMaxEnrollments == 0 {
 		return "", caerrors.NewAuthenticationErr(caerrors.ErrEnrollDisabled, "Enroll is disabled")
@@ -109,13 +109,13 @@ func (ctx *serverRequestContextImpl) BasicAuthentication() (string, error) {
 	if err != nil {
 		return "", caerrors.NewAuthenticationErr(caerrors.ErrInvalidUser, "Failed to get user: %s", err)
 	}
-	// fmt.Printf("===== lib/serverrequestcontext.go BasicAuthentication 从ca.registry获取到注册用户 Name:%s Type:%s\n", ctx.ui.GetName(), ctx.ui.GetType())
+	// zclog.Debugf("===== 从ca.registry获取到注册用户 Name:%s Type:%s\n", ctx.ui.GetName(), ctx.ui.GetType())
 	attempts := ctx.ui.GetFailedLoginAttempts()
 	allowedAttempts := ca.Config.Cfg.Identities.PasswordAttempts
 	if allowedAttempts > 0 {
 		if attempts == ca.Config.Cfg.Identities.PasswordAttempts {
 			msg := fmt.Sprintf("Incorrect password entered %d times, max incorrect password limit of %d reached", attempts, ca.Config.Cfg.Identities.PasswordAttempts)
-			log.Errorf(msg)
+			zclog.Error(msg)
 			return "", caerrors.NewHTTPErr(401, caerrors.ErrPasswordAttempts, msg)
 		}
 	}
@@ -131,7 +131,7 @@ func (ctx *serverRequestContextImpl) BasicAuthentication() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	log.Debugf("===== lib/serverrequestcontext.go BasicAuthentication caller:(Name:%s , Type:%s) ui:((Name:%s , Type:%s) enrollmentID:%s", ctx.caller.GetName(), ctx.caller.GetType(), ctx.ui.GetName(), ctx.ui.GetType(), username)
+	zclog.Debugf("===== caller:(Name:%s , Type:%s) ui:((Name:%s , Type:%s) enrollmentID:%s", ctx.caller.GetName(), ctx.caller.GetType(), ctx.ui.GetName(), ctx.ui.GetType(), username)
 	// Return the username
 	return username, nil
 }
@@ -163,7 +163,7 @@ func (ctx *serverRequestContextImpl) TokenAuthentication() (string, error) {
 }
 
 func (ctx *serverRequestContextImpl) verifyIdemixToken(authHdr, method, uri string, body []byte) (string, error) {
-	log.Debug("Caller is using Idemix credential")
+	zclog.Debug("Caller is using Idemix credential")
 	var err error
 
 	ctx.enrollmentID, err = ctx.ca.issuer.VerifyToken(authHdr, method, uri, body)
@@ -184,7 +184,7 @@ func (ctx *serverRequestContextImpl) verifyIdemixToken(authHdr, method, uri stri
 }
 
 func (ctx *serverRequestContextImpl) verifyX509Token(ca *CA, authHdr, method, uri string, body []byte) (string, error) {
-	log.Debug("===== lib/serverrequestcontext.go verifyX509Token: Caller is using a x509 certificate")
+	zclog.Debug("===== Caller is using a x509 certificate")
 	// Verify the token; the signature is over the header and body
 	// 检查http请求携带的token是否有效，并返回对应的x509证书
 	cert, err2 := util.VerifyTokenFromHttpRequest(ca.csp, authHdr, method, uri, body, ca.server.Config.CompMode1_3)
@@ -203,7 +203,7 @@ func (ctx *serverRequestContextImpl) verifyX509Token(ca *CA, authHdr, method, ur
 	}
 	// 从x509证书获取Subject.CommonName作为EnrollmentID
 	id := util.GetEnrollmentIDFromX509Certificate(cert)
-	log.Debugf("Checking for revocation/expiration of certificate owned by '%s'", id)
+	zclog.Debugf("Checking for revocation/expiration of certificate owned by '%s'", id)
 	// 检查证书是否过期或被撤销
 	// VerifyCertificate ensures that the certificate passed in hasn't
 	// expired and checks the CRL for the server.
@@ -212,10 +212,10 @@ func (ctx *serverRequestContextImpl) verifyX509Token(ca *CA, authHdr, method, ur
 		return "", caerrors.NewHTTPErr(401, caerrors.ErrCertRevokeCheckFailure, "Failed while checking for revocation")
 	}
 	if expired {
-		log.Debugf("Expired Certificate")
+		zclog.Debugf("Expired Certificate")
 		if reenrollIgnoreCertExpiry {
 			// 根据reenrollIgnoreCertExpiry决定是否忽略证书过期
-			log.Infof("Ignoring expired certificate for re-enroll operation")
+			zclog.Infof("Ignoring expired certificate for re-enroll operation")
 		} else {
 			return "", caerrors.NewAuthenticationErr(caerrors.ErrCertExpired,
 				"The certificate in the authorization header is a revoked or expired certificate")
@@ -243,7 +243,7 @@ func (ctx *serverRequestContextImpl) verifyX509Token(ca *CA, authHdr, method, ur
 	if err != nil {
 		return "", err
 	}
-	log.Debugf("Successful token authentication of '%s'", id)
+	zclog.Debugf("Successful token authentication of '%s'", id)
 	return id, nil
 }
 
@@ -327,7 +327,7 @@ func (ctx *serverRequestContextImpl) GetAttrExtension(attrReqs []*api.AttributeR
 			Critical: false,
 			Value:    hex.EncodeToString(buf),
 		}
-		log.Debugf("Attribute extension being added to certificate is: %+v", ext)
+		zclog.Debugf("Attribute extension being added to certificate is: %+v", ext)
 		return ext, nil
 	}
 	return nil, nil
@@ -444,7 +444,7 @@ func (ctx *serverRequestContextImpl) CanManageUser(user user.User) error {
 func (ctx *serverRequestContextImpl) CanModifyUser(req *api.ModifyIdentityRequest, checkAff bool, checkType bool, checkAttrs bool, userToModify user.User) error {
 	if checkAff {
 		reqAff := req.Affiliation
-		log.Debugf("Checking if caller is authorized to change affiliation to '%s'", reqAff)
+		zclog.Debugf("Checking if caller is authorized to change affiliation to '%s'", reqAff)
 		err := ctx.ContainsAffiliation(reqAff)
 		if err != nil {
 			return err
@@ -453,7 +453,7 @@ func (ctx *serverRequestContextImpl) CanModifyUser(req *api.ModifyIdentityReques
 
 	if checkType {
 		reqType := req.Type
-		log.Debugf("Checking if caller is authorized to change type to '%s'", reqType)
+		zclog.Debugf("Checking if caller is authorized to change type to '%s'", reqType)
 		err := ctx.CanActOnType(reqType)
 		if err != nil {
 			return err
@@ -462,7 +462,7 @@ func (ctx *serverRequestContextImpl) CanModifyUser(req *api.ModifyIdentityReques
 
 	if checkAttrs {
 		reqAttrs := req.Attributes
-		log.Debugf("Checking if caller is authorized to change attributes to %+v", reqAttrs)
+		zclog.Debugf("Checking if caller is authorized to change attributes to %+v", reqAttrs)
 		err := attr.CanRegisterRequestedAttributes(reqAttrs, userToModify, ctx.caller)
 		if err != nil {
 			return caerrors.NewAuthorizationErr(caerrors.ErrRegAttrAuth, "Failed to register attributes: %s", err)
@@ -516,11 +516,11 @@ func (ctx *serverRequestContextImpl) containsAffiliation(affiliation string) (bo
 	}
 
 	callerAffiliationPath := user.GetAffiliation(caller)
-	log.Debugf("Checking to see if affiliation '%s' contains caller's affiliation '%s'", affiliation, callerAffiliationPath)
+	zclog.Debugf("Checking to see if affiliation '%s' contains caller's affiliation '%s'", affiliation, callerAffiliationPath)
 
 	// If the caller has root affiliation return "true"
 	if callerAffiliationPath == "" {
-		log.Debug("Caller has root affiliation")
+		zclog.Debug("Caller has root affiliation")
 		return true, nil
 	}
 
@@ -556,7 +556,7 @@ func (ctx *serverRequestContextImpl) isRegistrar() (string, bool, error) {
 		return "", false, err
 	}
 
-	log.Debugf("Checking to see if caller '%s' is a registrar", caller.GetName())
+	zclog.Debugf("Checking to see if caller '%s' is a registrar", caller.GetName())
 
 	rolesStr, err := caller.GetAttribute("hf.Registrar.Roles")
 	if err != nil {
@@ -589,7 +589,7 @@ func (ctx *serverRequestContextImpl) canActOnType(requestedType string) (bool, e
 		return false, err
 	}
 
-	log.Debugf("Checking to see if caller '%s' can act on type '%s'", caller.GetName(), requestedType)
+	zclog.Debugf("Checking to see if caller '%s' can act on type '%s'", caller.GetName(), requestedType)
 
 	typesStr, isRegistrar, err := ctx.isRegistrar()
 	if err != nil {
@@ -613,7 +613,7 @@ func (ctx *serverRequestContextImpl) canActOnType(requestedType string) (bool, e
 		requestedType = "client"
 	}
 	if !strContained(requestedType, types) {
-		log.Debugf("Caller with types '%s' is not authorized to act on '%s'", types, requestedType)
+		zclog.Debugf("Caller with types '%s' is not authorized to act on '%s'", types, requestedType)
 		return false, nil
 	}
 

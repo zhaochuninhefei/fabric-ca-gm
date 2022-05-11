@@ -10,13 +10,12 @@ import (
 	"fmt"
 	"net/url"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 
@@ -32,7 +31,7 @@ func newRegisterEndpoint(s *Server) *serverEndpoint {
 
 // Handle a register request
 func registerHandler(ctx *serverRequestContextImpl) (interface{}, error) {
-	log.Debug("===== lib/serverregister.go registerHandler 开始处理register请求")
+	zclog.Debug("===== 开始处理register请求")
 	ca, err := ctx.GetCA()
 	if err != nil {
 		return nil, err
@@ -52,7 +51,7 @@ func register(ctx ServerRequestContext, ca *CA) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("===== lib/serverregister.go register 由 %s 发起请求注册用户: %v", callerID, &req)
+	zclog.Debugf("===== 由 %s 发起请求注册用户: %v", callerID, &req)
 	if ctx.IsLDAPEnabled() {
 		return nil, caerrors.NewHTTPErr(403, caerrors.ErrInvalidLDAPAction, "Registration is not supported when using LDAP")
 	}
@@ -83,7 +82,7 @@ func registerUser(req *api.RegistrationRequest, registrar string, ca *CA, ctx Se
 	// Check the permissions of member named 'registrar' to perform this registration
 	err = canRegister(registrarUser, req, ca, ctx)
 	if err != nil {
-		log.Debugf("Registrar is not allowed to register user '%s': %s", req.Name, err)
+		zclog.Debugf("===== 不允许Registrar注册用户: '%s',错误消息: %s", req.Name, err)
 		return "", caerrors.NewAuthorizationErr(caerrors.ErrRegistrarRegAuth, "Registration of '%s' failed", req.Name)
 	}
 
@@ -99,7 +98,7 @@ func registerUser(req *api.RegistrationRequest, registrar string, ca *CA, ctx Se
 func normalizeRegistrationRequest(req *api.RegistrationRequest, registrar user.User) {
 	if req.Affiliation == "" {
 		registrarAff := user.GetAffiliation(registrar)
-		log.Debugf("No affiliation provided in registration request, will default to using registrar's affiliation of '%s'", registrarAff)
+		zclog.Debugf("===== No affiliation provided in registration request, will default to using registrar's affiliation of '%s'", registrarAff)
 		req.Affiliation = registrarAff
 	} else if req.Affiliation == "." {
 		// Affiliation request of '.' signifies request for root affiliation
@@ -113,7 +112,7 @@ func normalizeRegistrationRequest(req *api.RegistrationRequest, registrar user.U
 
 func validateAffiliation(req *api.RegistrationRequest, ca *CA, ctx ServerRequestContext) error {
 	affiliation := req.Affiliation
-	log.Debugf("Validating affiliation: %s", affiliation)
+	zclog.Debugf("===== Validating affiliation: %s", affiliation)
 	err := ctx.ContainsAffiliation(affiliation)
 	if err != nil {
 		return err
@@ -134,7 +133,7 @@ func validateAffiliation(req *api.RegistrationRequest, ca *CA, ctx ServerRequest
 
 // registerUserID registers a new user and its enrollmentID, role and state
 func registerUserID(req *api.RegistrationRequest, ca *CA) (string, error) {
-	log.Debugf("Registering user id: %s\n", req.Name)
+	zclog.Debugf("===== Registering user id: %s\n", req.Name)
 	var err error
 
 	if req.Secret == "" {
@@ -173,12 +172,12 @@ func registerUserID(req *api.RegistrationRequest, ca *CA) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	log.Debugf("===== lib/serverregister.go registerUserID:注册用户成功 Name:%s Type:%s\n", insert.Name, insert.Type)
+	zclog.Debugf("===== 注册用户成功 Name:%s Type:%s\n", insert.Name, insert.Type)
 	return req.Secret, nil
 }
 
 func canRegister(registrar user.User, req *api.RegistrationRequest, ca *CA, ctx ServerRequestContext) error {
-	log.Debugf("canRegister - Check to see if user '%s' can register", registrar.GetName())
+	zclog.Debugf("===== 检查是否允许用户 '%s' 申请注册其他用户", registrar.GetName())
 
 	err := ctx.CanActOnType(req.Type)
 	if err != nil {

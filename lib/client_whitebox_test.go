@@ -13,10 +13,8 @@ import (
 	"path"
 	"testing"
 
-	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
-
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	cax509 "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/client/credential/x509"
@@ -24,11 +22,9 @@ import (
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	cspsigner "gitee.com/zhaochuninhefei/fabric-gm/bccsp/signer"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/utils"
-
-	// gx509 "gitee.com/zhaochuninhefei/gmgo/x509"
-	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
-	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/stretchr/testify/assert"
 )
 

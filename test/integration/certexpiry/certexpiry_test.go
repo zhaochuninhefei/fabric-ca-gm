@@ -13,11 +13,11 @@ import (
 	"time"
 
 	"gitee.com/zhaochuninhefei/cfssl-gm/config"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/cmd/fabric-ca-client/command"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/metadata"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 )
 
 const (

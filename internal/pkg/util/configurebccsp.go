@@ -13,10 +13,10 @@ import (
 	"path"
 	"strings"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/factory"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/pkcs11"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

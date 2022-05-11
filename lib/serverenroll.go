@@ -11,18 +11,16 @@ import (
 	"encoding/pem"
 	"time"
 
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
+	"gitee.com/zhaochuninhefei/cfssl-gm/config"
+	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	cferr "gitee.com/zhaochuninhefei/cfssl-gm/errors"
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/caerrors"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
-
-	"gitee.com/zhaochuninhefei/cfssl-gm/config"
-	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
-	cferr "gitee.com/zhaochuninhefei/cfssl-gm/errors"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
-	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 
@@ -70,7 +68,7 @@ func newReenrollEndpoint(s *Server) *serverEndpoint {
 
 // Handle an enroll request, guarded by basic authentication
 func enrollHandler(ctx *serverRequestContextImpl) (interface{}, error) {
-	log.Debug("===== lib/serverenroll.go enrollHandler ca服务端开始处理enroll请求")
+	zclog.Debug("===== ca服务端开始处理enroll请求")
 	id, err := ctx.BasicAuthentication()
 	if err != nil {
 		return nil, err
@@ -98,7 +96,7 @@ func reenrollHandler(ctx *serverRequestContextImpl) (interface{}, error) {
 
 // Handle the common processing for enroll and reenroll
 func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error) {
-	log.Debugf("===== lib/serverenroll.go handleEnroll: 请求证书的用户信息 Name:%s Type:%s\n", ctx.ui.GetName(), ctx.ui.GetType())
+	zclog.Debugf("===== 请求证书的用户信息 Name:%s Type:%s", ctx.ui.GetName(), ctx.ui.GetType())
 	var req api.EnrollmentRequestNet
 	err := ctx.ReadBody(&req)
 	if err != nil {
@@ -111,7 +109,7 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 	}
 	// Set expiry based on the requested CA profile else use expiry from the default profile
 	// 从ca配置中读取 ca.Config.Signing.Default : signing.default
-	// log.Debugf("===== lib/serverenroll.go handleEnroll before req.NotAfter : %s , req.SignRequest.NotAfter: %s", req.NotAfter.Format(time.RFC3339), req.SignRequest.NotAfter.Format(time.RFC3339))
+	// zclog.Debugf("===== lib/serverenroll.go handleEnroll before req.NotAfter : %s , req.SignRequest.NotAfter: %s", req.NotAfter.Format(time.RFC3339), req.SignRequest.NotAfter.Format(time.RFC3339))
 	profile := ca.Config.Signing.Default
 	if req.Profile != "" && ca.Config.Signing != nil &&
 		ca.Config.Signing.Profiles != nil && ca.Config.Signing.Profiles[req.Profile] != nil {
@@ -127,18 +125,18 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 	// Make sure requested expiration for enrollment certificate is not after CA certificate
 	// expiration
 	if !notAfter.IsZero() && req.NotAfter.After(notAfter) {
-		log.Debugf("Requested expiry '%s' is after the CA certificate expiry '%s'. Will use CA cert expiry",
+		zclog.Debugf("Requested expiry '%s' is after the CA certificate expiry '%s'. Will use CA cert expiry",
 			req.NotAfter, notAfter)
 		req.NotAfter = notAfter
 	}
 	// Make sure that requested expiration for enrollment certificate is not before CA certificate
 	// expiration
 	if !notBefore.IsZero() && req.NotBefore.Before(notBefore) {
-		log.Debugf("Requested expiry '%s' is before the CA certificate expiry '%s'. Will use CA cert expiry",
+		zclog.Debugf("Requested expiry '%s' is before the CA certificate expiry '%s'. Will use CA cert expiry",
 			req.NotBefore, notBefore)
 		req.NotBefore = notBefore
 	}
-	// log.Debugf("===== lib/serverenroll.go handleEnroll after req.NotAfter : %s , req.SignRequest.NotAfter: %s", req.NotAfter.Format(time.RFC3339), req.SignRequest.NotAfter.Format(time.RFC3339))
+	// zclog.Debugf("===== lib/serverenroll.go handleEnroll after req.NotAfter : %s , req.SignRequest.NotAfter: %s", req.NotAfter.Format(time.RFC3339), req.SignRequest.NotAfter.Format(time.RFC3339))
 
 	// Process the sign request from the caller.
 	// Make sure it is authorized and do any swizzling appropriate to the request.
@@ -154,7 +152,7 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 	}
 	// If there is an extension requested, add it to the request
 	if ext != nil {
-		log.Debugf("Adding attribute extension to CSR: %+v", ext)
+		zclog.Debugf("Adding attribute extension to CSR: %+v", ext)
 		req.Extensions = append(req.Extensions, *ext)
 	}
 	// Sign the certificate
@@ -174,7 +172,7 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 		return nil, err
 	}
 	// Success
-	log.Debugf("===== lib/serverenroll.go handleEnroll: 用户:%s (Type:%s)的证书拉取请求成功", ctx.ui.GetName(), ctx.ui.GetType())
+	zclog.Debugf("===== 用户:%s (Type:%s)的证书拉取请求成功", ctx.ui.GetName(), ctx.ui.GetType())
 	return resp, nil
 }
 
@@ -210,8 +208,8 @@ func processSignRequest(id string, req *signer.SignRequest, ca *CA, ctx *serverR
 	if err != nil {
 		return err
 	}
-	// log.Debugf("===== lib/serverenroll.go processSignRequest req.Subject: %#v", req.Subject)
-	// log.Debugf("Processing sign request: id=%s, CommonName=%s, Subject=%#v", id, csrReq.Subject.CommonName, csrReq.Subject)
+	// zclog.Debugf("===== req.Subject: %#v", req.Subject)
+	// zclog.Debugf("Processing sign request: id=%s, CommonName=%s, Subject=%#v", id, csrReq.Subject.CommonName, csrReq.Subject)
 	if (req.Subject != nil && req.Subject.CN != id) || csrReq.Subject.CommonName != id {
 		return caerrors.NewHTTPErr(403, caerrors.ErrCNInvalidEnroll, "The CSR subject common name must equal the enrollment ID")
 	}
@@ -238,7 +236,7 @@ func processSignRequest(id string, req *signer.SignRequest, ca *CA, ctx *serverR
 	}
 	// Set the OUs in the request appropriately.
 	setRequestOUs(req, caller)
-	log.Debug("Finished processing sign request")
+	zclog.Debug("===== Finished processing sign request")
 	return nil
 }
 
@@ -252,7 +250,7 @@ func isRequestForCASigningCert(csrReq *x509.CertificateRequest, ca *CA, profile 
 		return false, errors.Errorf("Invalid profile: '%s'", profile)
 	}
 	if sp.CAConstraint.IsCA {
-		log.Debugf("Request is for a CA signing certificate as set in profile '%s'", profile)
+		zclog.Debugf("Request is for a CA signing certificate as set in profile '%s'", profile)
 		return true, nil
 	}
 	// Check the CSR to see if the IsCA bit is set
@@ -267,13 +265,13 @@ func isRequestForCASigningCert(csrReq *x509.CertificateRequest, ca *CA, profile 
 				return false, caerrors.NewHTTPErr(400, caerrors.ErrBadCSR, "Trailing data after X.509 BasicConstraints")
 			}
 			if constraints.IsCA {
-				log.Debug("Request is for a CA signing certificate as indicated in the CSR")
+				zclog.Debug("Request is for a CA signing certificate as indicated in the CSR")
 				return true, nil
 			}
 		}
 	}
 	// The IsCA bit was not set
-	log.Debug("Request is not for a CA signing certificate")
+	zclog.Debug("Request is not for a CA signing certificate")
 	return false, nil
 }
 
@@ -286,7 +284,7 @@ func getSigningProfile(ca *CA, profile string) *config.SigningProfile {
 
 // Checks to make sure that character limits are not exceeded for CSR fields
 func csrInputLengthCheck(req *x509.CertificateRequest) error {
-	log.Debug("Checking CSR fields to make sure that they do not exceed maximum character limits")
+	zclog.Debug("Checking CSR fields to make sure that they do not exceed maximum character limits")
 
 	for _, n := range req.Subject.Names {
 		value := n.Value.(string)
@@ -345,14 +343,14 @@ func setRequestOUs(req *signer.SignRequest, caller user.User) {
 		}
 	}
 	// Add an OU field with the type
-	// fmt.Printf("===== lib/serverenroll.go setRequestOUs caller.GetType: %s\n", caller.GetType())
+	// zclog.Debugf("===== lib/serverenroll.go setRequestOUs caller.GetType: %s\n", caller.GetType())
 	names = append(names, csr.Name{OU: caller.GetType()})
 	for _, aff := range caller.GetAffiliationPath() {
 		names = append(names, csr.Name{OU: aff})
 	}
-	// fmt.Printf("===== lib/serverenroll.go setRequestOUs names: %v\n", names)
+	// zclog.Debugf("===== lib/serverenroll.go setRequestOUs names: %v\n", names)
 	// Replace with new names
 	s.Names = names
 	req.Subject = s
-	// fmt.Printf("===== lib/serverenroll.go setRequestOUs req.Subject: %#v\n", req.Subject)
+	// zclog.Debugf("===== lib/serverenroll.go setRequestOUs req.Subject: %#v\n", req.Subject)
 }

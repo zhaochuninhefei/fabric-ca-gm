@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package lib
 
 import (
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 )
 
 func newIdemixCRIEndpoint(s *Server) *serverEndpoint {

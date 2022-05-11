@@ -29,7 +29,7 @@ import (
 	"strings"
 
 	"gitee.com/zhaochuninhefei/cfssl-gm/api"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

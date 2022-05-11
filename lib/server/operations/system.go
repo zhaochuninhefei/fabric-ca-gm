@@ -14,18 +14,17 @@ import (
 	"strings"
 	"time"
 
-	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
-
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/metadata"
 	"gitee.com/zhaochuninhefei/fabric-config-gm/healthz"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/disabled"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/prometheus"
 	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics/statsd"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
 	"gitee.com/zhaochuninhefei/gmgo/mux"
 	"gitee.com/zhaochuninhefei/gmgo/prometheus/promhttp"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	kitstatsd "github.com/go-kit/kit/metrics/statsd"
 )
 
@@ -138,7 +137,7 @@ func (s *System) initializeMetricsProvider() {
 
 	default:
 		if providerType != "disabled" {
-			log.Warningf("Unknown provider type: %s; metrics disabled", providerType)
+			log.Warnf("Unknown provider type: %s; metrics disabled", providerType)
 		}
 
 		s.Provider = &disabled.Provider{}
@@ -179,7 +178,7 @@ func (s *System) startMetricsTickers() error {
 
 // Log is a function required to meet the interface required by statsd
 func (s *System) Log(keyvals ...interface{}) error {
-	log.Warning(keyvals...)
+	log.Warn(keyvals...)
 	return nil
 }
 

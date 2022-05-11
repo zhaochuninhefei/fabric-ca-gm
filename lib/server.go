@@ -19,12 +19,8 @@ import (
 	"sync"
 	"time"
 
-	_ "gitee.com/zhaochuninhefei/gmgo/gmhttp/pprof" // import to support profiling
-
-	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
-
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/cfssl-gm/revoke"
+	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	calog "gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/attr"
@@ -36,15 +32,16 @@ import (
 	servermetrics "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/metrics"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/operations"
 	stls "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/tls"
-	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics"
-	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
-	"gitee.com/zhaochuninhefei/gmgo/x509"
-
-	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"gitee.com/zhaochuninhefei/fabric-config-gm/healthz"
+	"gitee.com/zhaochuninhefei/fabric-gm/common/metrics"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+	_ "gitee.com/zhaochuninhefei/gmgo/gmhttp/pprof" // import to support profiling
+	tls "gitee.com/zhaochuninhefei/gmgo/gmtls"
 	ghandlers "gitee.com/zhaochuninhefei/gmgo/handlers"
 	"gitee.com/zhaochuninhefei/gmgo/httpsnoop"
 	gmux "gitee.com/zhaochuninhefei/gmgo/mux"
+	"gitee.com/zhaochuninhefei/gmgo/x509"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
@@ -754,7 +751,7 @@ func (s *Server) checkAndEnableProfiling() error {
 	if pport != "" {
 		iport, err := strconv.Atoi(pport)
 		if err != nil || iport < 0 {
-			log.Warningf("Profile port specified by the %s environment variable is not a valid port, not enabling profiling",
+			log.Warnf("Profile port specified by the %s environment variable is not a valid port, not enabling profiling",
 				fabricCAServerProfilePort)
 		} else {
 			addr := net.JoinHostPort(s.Config.Address, pport)
@@ -909,7 +906,7 @@ func (s *Server) autoGenerateTLSCertificateKey() error {
 
 // Log is a function required to meet the interface required by statsd
 func (s *Server) Log(keyvals ...interface{}) error {
-	log.Warning(keyvals...)
+	log.Warn(keyvals...)
 	return nil
 }
 

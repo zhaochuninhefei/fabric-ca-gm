@@ -16,20 +16,20 @@ import (
 
 	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
 	"gitee.com/zhaochuninhefei/cfssl-gm/csr"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp"
 	"gitee.com/zhaochuninhefei/fabric-gm/bccsp/sw"
 	"gitee.com/zhaochuninhefei/gmgo/sm2"
 	"gitee.com/zhaochuninhefei/gmgo/x509"
+	"gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 
 // 使用CA作为签署者生成x509证书
 func createCertByCA(req signer.SignRequest, ca *CA) (cert []byte, err error) {
-	// fmt.Printf("===== lib/gmca.go signCert: CA服务端开始做证书签名\n")
-	// fmt.Printf("===== lib/gmca.go signCert req : %#v\n", req.Subject)
+	// zclog.Debugf("===== CA服务端开始做证书签名")
+	// zclog.Debugf("===== req : %#v\n", req.Subject)
 	// 注意，这里只把 req.Request 转为pem，丢掉了 req.Subject 信息
 	block, _ := pem.Decode([]byte(req.Request))
 	if block == nil {
@@ -41,44 +41,44 @@ func createCertByCA(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	// 基于req.Request(证书请求csr)生成证书模板
 	template, err := createCertTemplateByCertificateRequest(block.Bytes)
 	if err != nil {
-		log.Errorf("===== lib/gmca.go signCert: parseCertificateRequest error:[%s]", err)
+		zclog.Errorf("===== createCertTemplateByCertificateRequest error:[%s]", err)
 		return nil, err
 	}
 	// 补充OU与证书期限
 	err = fillOUAndNotAfter(template, req)
 	if err != nil {
-		log.Errorf("===== lib/gmca.go createCertByCA: fillOUAndNotAfter error:[%s]", err)
+		zclog.Errorf("===== fillOUAndNotAfter error:[%s]", err)
 		return nil, err
 	}
 	// 获取CA证书路径
 	caCertFile := ca.Config.CA.Certfile
 	//certfile := req.Profile
-	// log.Infof("===== lib/gmca.go createCertByCA:certifle = %s", certfile)
+	// zclog.Debugf("===== certifle = %s", certfile)
 	// 读取CA证书文件，获取CA的私钥与其x509证书
 	caRootkey, _, caRootCert, err := util.GetSignerFromCertFile(caCertFile, ca.csp)
 	if err != nil {
 		return nil, err
 	}
-	// log.Infof("===== lib/gmca.go createCertByCA:rootca = %v", rootca)
+	// zclog.Debugf("===== rootca = %v", rootca)
 	// rootca := ParseX509Certificate2Sm2(x509cert)
 	// 使用CA的私钥与其x509证书给template签名，生成对应证书，并转为pem字节数组
 	cert, err = sw.CreateCertificateToMem(template, caRootCert, caRootkey)
 	if err != nil {
 		return nil, err
 	}
-	// log.Infof("===== lib/gmca.go createCertByCA:template = %v\n Type = %T", template, template.PublicKey)
+	// zclog.Debugf("===== template = %v\n Type = %T", template, template.PublicKey)
 	// 将pem字节数组转为x509证书
 	clientCert, err := x509.ReadCertificateFromPem(cert)
 	if err != nil {
 		return nil, err
 	}
-	// log.Infof("===== lib/gmca.go createCertByCA:template.SerialNumber---,%v", template.SerialNumber)
-	// log.Infof("===== lib/gmca.go createCertByCA:clientCert--,%v", clientCert)
-	// log.Infof("===== lib/gmca.go createCertByCA:cert--,%v", cert)
-	// log.Infof("===== lib/gmca.go createCertByCA:req.Label--,%v", req.Label)
-	// log.Infof("===== lib/gmca.go createCertByCA:clientCert.NotAfter--,%v", clientCert.NotAfter)
-	// log.Info("===== lib/gmca.go createCertByCA: Exit ParseCertificate")
-	log.Infof("===== lib/gmca.go createCertByCA: 生成的证书长度 [%d]", len(cert))
+	// zclog.Debugf("===== template.SerialNumber---,%v", template.SerialNumber)
+	// zclog.Debugf("===== clientCert--,%v", clientCert)
+	// zclog.Debugf("===== cert--,%v", cert)
+	// zclog.Debugf("===== req.Label--,%v", req.Label)
+	// zclog.Debugf("===== clientCert.NotAfter--,%v", clientCert.NotAfter)
+	// zclog.Debug("===== Exit ParseCertificate")
+	zclog.Debugf("===== 生成的证书长度 [%d]", len(cert))
 	// 将生成的证书插入DB
 	var certRecord = certdb.CertificateRecord{
 		Serial:  template.SerialNumber.String(),
@@ -92,18 +92,19 @@ func createCertByCA(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	//serial := util.GetSerialAsHex(cert.SerialNumber)
 	err = ca.certDBAccessor.InsertCertificate(certRecord)
 	if err != nil {
-		log.Errorf("===== lib/gmca.go createCertByCA error InsertCertificate:[%s]", err)
+		zclog.Errorf("===== error InsertCertificate:[%s]", err)
 	}
 	return
 }
 
 // 生成自签名的CA根证书
 func createRootCACert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Signer) (cert []byte, err error) {
-	log.Infof("===== lib/gmca.go createRootCACert key :%T", key)
+	zclog.Debugf("===== key类型 :%T", key)
 	// 生成标准的国密x509证书请求
 	csrPEM, err := createCertificateRequest(priv, req, key)
 	if err != nil {
-		log.Errorf("===== lib/gmca.go createRootCACert generate error:%s", err)
+		zclog.Errorf("===== createCertificateRequest error:%s", err)
+		return nil, err
 	}
 	block, _ := pem.Decode(csrPEM)
 	if block == nil {
@@ -122,7 +123,6 @@ func createRootCACert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Si
 	certTemplate.NotBefore = time.Now()
 	// 作为CA自签名的根证书，使用期限最长的 defaultRootCACertificateExpiration
 	certTemplate.NotAfter = time.Now().Add(parseDuration(defaultRootCACertificateExpiration))
-	// log.Infof("===== lib/gmca.go createRootCACert key is %T   ---%T", sm2Template.PublicKey, sm2Template)
 	// 生成自签名的CA根证书
 	cert, err = sw.CreateCertificateToMem(certTemplate, certTemplate, key)
 	return
@@ -131,7 +131,7 @@ func createRootCACert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Si
 // 补充OU信息
 func fillOUAndNotAfter(template *x509.Certificate, req signer.SignRequest) error {
 	subject := req.Subject
-	// log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject before template.Subject: %#v , subject: %#v", template.Subject, subject)
+	// zclog.Debugf("===== before template.Subject: %#v , subject: %#v", template.Subject, subject)
 	if len(subject.Names) > 0 {
 		if len(template.Subject.OrganizationalUnit) == 0 {
 			var tmpOUs []string
@@ -162,15 +162,15 @@ func fillOUAndNotAfter(template *x509.Certificate, req signer.SignRequest) error
 			template.Subject.OrganizationalUnit = tmpOUs
 		}
 	}
-	// log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject after template.Subject: %#v , subject: %#v", template.Subject, subject)
+	// zclog.Debugf("===== after template.Subject: %#v , subject: %#v", template.Subject, subject)
 	template.NotBefore = time.Now()
-	// log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject req.NotAfter: %s", req.NotAfter.Format(time.RFC3339))
+	// zclog.Debugf("===== req.NotAfter: %s", req.NotAfter.Format(time.RFC3339))
 	if req.NotAfter.IsZero() {
 		template.NotAfter = time.Now().Add(defaultIssuedCertificateExpiration)
 	} else {
 		template.NotAfter = req.NotAfter
 	}
-	// log.Infof("===== lib/gmca.go parseCertificateRequestWithSubject template.NotAfter: %s", template.NotAfter.Format(time.RFC3339))
+	// zclog.Debugf("===== template.NotAfter: %s", template.NotAfter.Format(time.RFC3339))
 	return nil
 }
 
@@ -185,7 +185,7 @@ func createCertTemplateByCertificateRequest(csrBytes []byte) (template *x509.Cer
 	if err != nil {
 		return nil, err
 	}
-	// log.Infof("===== lib/gmca.go parseCertificateRequest: csrv :%#v", csrv)
+	// zclog.Debugf("===== csrv :%#v", csrv)
 	template = &x509.Certificate{
 		Subject:            csrv.Subject,
 		PublicKeyAlgorithm: csrv.PublicKeyAlgorithm,
@@ -195,8 +195,8 @@ func createCertTemplateByCertificateRequest(csrBytes []byte) (template *x509.Cer
 		IPAddresses:        csrv.IPAddresses,
 		EmailAddresses:     csrv.EmailAddresses,
 	}
-	// fmt.Printf("===== lib/gmca.go parseCertificateRequest:algorithn = %v, %v\n", template.PublicKeyAlgorithm, template.SignatureAlgorithm)
-	// log.Infof("===== lib/gmca.go parseCertificateRequest:publicKey :%T", template.PublicKey)
+	// zclog.Debugf("===== algorithn = %v, %v\n", template.PublicKeyAlgorithm, template.SignatureAlgorithm)
+	// zclog.Debugf("===== publicKey :%T", template.PublicKey)
 
 	for _, val := range csrv.Extensions {
 		// Check the CSR for the X.509 BasicConstraints (RFC 5280, 4.2.1.9)
@@ -235,12 +235,11 @@ func createCertTemplateByCertificateRequest(csrBytes []byte) (template *x509.Cer
 
 // 生成标准的国密x509证书请求
 func createCertificateRequest(priv crypto.Signer, req *csr.CertificateRequest, key bccsp.Key) (csr []byte, err error) {
-	// log.Info("===== lib/gmca.go generate")
 	sigAlgo := signerAlgo(priv)
 	if sigAlgo == x509.UnknownSignatureAlgorithm {
 		return nil, errors.Errorf("===== lib/gmca.go generate Private key type is unsupported")
 	}
-	// log.Info("===== lib/gmca.go generate begin create sm2.CertificateRequest")
+	// zclog.Debug("===== begin create sm2.CertificateRequest")
 	reqName := req.Name()
 	// 生成证书申请模板
 	var tpl = x509.CertificateRequest{
@@ -261,12 +260,11 @@ func createCertificateRequest(priv crypto.Signer, req *csr.CertificateRequest, k
 	if req.CA != nil {
 		err = appendCAInfoToCSR(req.CA, &tpl)
 		if err != nil {
-			err = fmt.Errorf("===== lib/gmca.go generate sm2 GenerationFailed")
+			err = fmt.Errorf("===== lib/gmca.go createCertificateRequest appendCAInfoToCSR faild: %s", err)
 			return
 		}
 	}
 	csr, err = sw.CreateSm2CertificateRequestToMem(&tpl, key)
-	log.Info("===== lib/gmca.go generate exit generate")
 	return
 }
 

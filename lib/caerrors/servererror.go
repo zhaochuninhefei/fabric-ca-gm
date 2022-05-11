@@ -11,10 +11,9 @@ import (
 	"fmt"
 	"reflect"
 
-	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
-
 	cfsslapi "gitee.com/zhaochuninhefei/cfssl-gm/api"
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/pkg/errors"
 )
 

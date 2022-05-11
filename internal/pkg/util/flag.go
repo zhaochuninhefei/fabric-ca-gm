@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	logging "github.com/op/go-logging"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
@@ -138,7 +138,7 @@ func (fr *flagRegistrar) Register(f *Field) (err error) {
 			return nil
 		}
 	default:
-		log.Debugf("Not registering flag for '%s' because it is a currently unsupported type: %s\n",
+		log.Debugf("Not registering flag for '%s' because it is a currently unsupported type: %s",
 			f.Path, f.Kind)
 		return nil
 	}
@@ -173,7 +173,7 @@ func (fr *flagRegistrar) getHideBooleanTag(f *Field) bool {
 func CmdRunBegin(v *viper.Viper) {
 	// If -d or --debug, set debug logging level
 	if v.GetBool("debug") {
-		log.Level = log.LevelDebug
+		log.Level = log.LOG_LEVEL_DEBUG
 
 		logging.SetLevel(logging.INFO, "bccsp")
 		logging.SetLevel(logging.INFO, "bccsp_p11")

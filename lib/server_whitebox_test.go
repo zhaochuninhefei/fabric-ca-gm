@@ -11,7 +11,6 @@ import (
 	"os"
 	"testing"
 
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/util"
 	cadb "gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/db"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/metrics"
@@ -19,6 +18,7 @@ import (
 	http "gitee.com/zhaochuninhefei/gmgo/gmhttp"
 	"gitee.com/zhaochuninhefei/gmgo/gmhttp/httptest"
 	"gitee.com/zhaochuninhefei/gmgo/mux"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 	"github.com/jmoiron/sqlx"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
@@ -95,27 +95,27 @@ func TestServerLogLevel(t *testing.T) {
 	srv.Config.LogLevel = "info"
 	err = srv.Init(false)
 	util.FatalError(t, err, "Failed to init server with 'info' log level")
-	assert.Equal(t, log.Level, log.LevelInfo)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_INFO)
 
 	srv.Config.LogLevel = "Debug"
 	err = srv.Init(false)
 	util.FatalError(t, err, "Failed to init server 'debug' log level")
-	assert.Equal(t, log.Level, log.LevelDebug)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_DEBUG)
 
 	srv.Config.LogLevel = "warning"
 	err = srv.Init(false)
 	util.FatalError(t, err, "Failed to init server with 'warning' log level")
-	assert.Equal(t, log.Level, log.LevelWarning)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_WARNING)
 
-	srv.Config.LogLevel = "critical"
+	srv.Config.LogLevel = "panic"
 	err = srv.Init(false)
 	util.FatalError(t, err, "Failed to init server with 'critical' log level")
-	assert.Equal(t, log.Level, log.LevelCritical)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_PANIC)
 
 	srv.Config.LogLevel = "fatal"
 	err = srv.Init(false)
 	util.FatalError(t, err, "Failed to init server with 'fatal' log level")
-	assert.Equal(t, log.Level, log.LevelFatal)
+	assert.Equal(t, log.Level, log.LOG_LEVEL_FATAL)
 
 	srv.Config.Debug = true
 	err = srv.Init(false)

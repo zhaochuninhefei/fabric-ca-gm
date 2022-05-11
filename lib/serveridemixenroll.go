@@ -7,10 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package lib
 
 import (
-	"gitee.com/zhaochuninhefei/cfssl-gm/log"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/idemix"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/lib/server/user"
+	log "gitee.com/zhaochuninhefei/zcgolog/zclog"
 )
 
 func newIdemixEnrollEndpoint(s *Server) *serverEndpoint {
