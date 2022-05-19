@@ -63,6 +63,7 @@ func (mgr *Mgr) ProcessAttributeRequestsForCert(requests []AttributeRequest, att
 
 // ProcessAttributeRequests takes an array of attribute requests and an identity's attributes
 // and returns an Attributes object containing the requested attributes.
+// 根据请求的属性从所有属性列表中选取对应的属性
 func (mgr *Mgr) ProcessAttributeRequests(requests []AttributeRequest, attributes []Attribute) (*Attributes, error) {
 	attrsMap := map[string]string{}
 	attrs := &Attributes{Attrs: attrsMap}

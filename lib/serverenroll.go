@@ -152,14 +152,12 @@ func handleEnroll(ctx *serverRequestContextImpl, id string) (interface{}, error)
 	}
 	// If there is an extension requested, add it to the request
 	if ext != nil {
-		zclog.Debugf("Adding attribute extension to CSR: %+v", ext)
+		// zclog.Debugf("Adding attribute extension to CSR: %+v", ext)
 		req.Extensions = append(req.Extensions, *ext)
 	}
 	// Sign the certificate
-	// TODO 国密改造
-	// cert1, err1 := ca.enrollSigner.Sign(req.SignRequest)
-	// fmt.Printf("===== lib/serverenroll.go handleEnroll: 签名前确认请求数据 req.SignRequest.Subject: %#v\n", req.SignRequest.Subject)
-	cert, err := createCertByCA(req.SignRequest, ca)
+	// 使用cfssl-gm，已实现国密改造
+	cert, err := ca.enrollSigner.Sign(req.SignRequest)
 	if err != nil {
 		return nil, errors.WithMessage(err, "Certificate signing failure")
 	}

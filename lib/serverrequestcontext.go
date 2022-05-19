@@ -303,16 +303,19 @@ func (ctx *serverRequestContextImpl) GetAttrExtension(attrReqs []*api.AttributeR
 	if err != nil {
 		return nil, err
 	}
+	// 如果没有特意指定哪些扩展属性，就按照ca账户注册时各属性的ecert字段获取默认的扩展属性
 	if attrReqs == nil {
+		// 根据 ecert 是否为true过滤默认属性
 		attrReqs = getDefaultAttrReqs(allAttrs)
 		if attrReqs == nil {
 			// No attributes are being requested, so we are done
 			return nil, nil
 		}
 	}
+	// 获取对应属性
 	attrs, err := ca.attrMgr.ProcessAttributeRequests(
-		convertAttrReqs(attrReqs),
-		convertAttrs(allAttrs),
+		convertAttrReqs(attrReqs), // 接口转换:[]*api.AttributeRequest -> []attrmgr.AttributeRequest
+		convertAttrs(allAttrs),    // 接口转换:[]api.Attribute -> []attrmgr.Attribute
 	)
 	if err != nil {
 		return nil, err
@@ -327,7 +330,7 @@ func (ctx *serverRequestContextImpl) GetAttrExtension(attrReqs []*api.AttributeR
 			Critical: false,
 			Value:    hex.EncodeToString(buf),
 		}
-		zclog.Debugf("Attribute extension being added to certificate is: %+v", ext)
+		zclog.Debugf("Attribute extension being added to certificate is: %s", attrs.Attrs)
 		return ext, nil
 	}
 	return nil, nil

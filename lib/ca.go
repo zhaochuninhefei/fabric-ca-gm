@@ -21,6 +21,7 @@ import (
 	"gitee.com/zhaochuninhefei/cfssl-gm/certdb"
 	"gitee.com/zhaochuninhefei/cfssl-gm/config"
 	cfcsr "gitee.com/zhaochuninhefei/cfssl-gm/csr"
+	"gitee.com/zhaochuninhefei/cfssl-gm/initca"
 	"gitee.com/zhaochuninhefei/cfssl-gm/signer"
 	cflocalsigner "gitee.com/zhaochuninhefei/cfssl-gm/signer/local"
 	"gitee.com/zhaochuninhefei/fabric-ca-gm/internal/pkg/api"
@@ -352,20 +353,12 @@ func (ca *CA) getCACert() (cert []byte, err error) {
 		}
 		zclog.Debugf("Root CA certificate request: %+v", req)
 		// Generate the key/signer
-		// TODO 后续国密分支需要获取key
-		key, cspSigner, err := util.BCCSPKeyRequestGenerate(&req, ca.csp)
+		_, cspSigner, err := util.BCCSPKeyRequestGenerate(&req, ca.csp)
 		if err != nil {
 			return nil, err
 		}
-		// Call CFSSL to initialize the CA
-		// TODO 添加国密分支 目前强制使用国密
-		// if IsGMConfig() {
-		// 	cert, err = createRootCACert(key, &req, cspSigner)
-		// } else {
-		// 	cert, _, err = initca.NewFromSigner(&req, cspSigner)
-		// }
 		// 生成自签名的CA根证书
-		cert, err = createRootCACert(key, &req, cspSigner)
+		cert, _, err = initca.NewFromSigner(&req, cspSigner)
 		if err != nil {
 			return nil, errors.WithMessage(err, "Failed to create new CA certificate")
 		}

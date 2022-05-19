@@ -27,6 +27,8 @@ import (
 )
 
 // 使用CA作为签署者生成x509证书
+//
+// Deprecated: 国密证书的签署改为使用`gitee.com/zhaochuninhefei/cfssl-gm`
 func createCertByCA(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 	// zclog.Debugf("===== CA服务端开始做证书签名")
 	// zclog.Debugf("===== req : %#v\n", req.Subject)
@@ -98,6 +100,8 @@ func createCertByCA(req signer.SignRequest, ca *CA) (cert []byte, err error) {
 }
 
 // 生成自签名的CA根证书
+//
+// Deprecated: 国密证书的签署改为使用`gitee.com/zhaochuninhefei/cfssl-gm`
 func createRootCACert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Signer) (cert []byte, err error) {
 	zclog.Debugf("===== key类型 :%T", key)
 	// 生成标准的国密x509证书请求
@@ -129,6 +133,8 @@ func createRootCACert(key bccsp.Key, req *csr.CertificateRequest, priv crypto.Si
 }
 
 // 补充OU信息
+//
+// Deprecated: 国密证书的签署改为使用`gitee.com/zhaochuninhefei/cfssl-gm`
 func fillOUAndNotAfter(template *x509.Certificate, req signer.SignRequest) error {
 	subject := req.Subject
 	// zclog.Debugf("===== before template.Subject: %#v , subject: %#v", template.Subject, subject)
@@ -175,7 +181,9 @@ func fillOUAndNotAfter(template *x509.Certificate, req signer.SignRequest) error
 }
 
 // 根据证书请求生成x509证书模板
-//  注意，生成的模板缺少证书期限
+//  注意，生成的模板缺少证书期限，缺少扩展信息
+//
+// Deprecated: 国密证书的签署改为使用`gitee.com/zhaochuninhefei/cfssl-gm`
 func createCertTemplateByCertificateRequest(csrBytes []byte) (template *x509.Certificate, err error) {
 	csrv, err := x509.ParseCertificateRequest(csrBytes)
 	if err != nil {
@@ -199,9 +207,11 @@ func createCertTemplateByCertificateRequest(csrBytes []byte) (template *x509.Cer
 	// zclog.Debugf("===== publicKey :%T", template.PublicKey)
 
 	for _, val := range csrv.Extensions {
+		zclog.Debugf("===== csrv.Extensions: %s", val)
 		// Check the CSR for the X.509 BasicConstraints (RFC 5280, 4.2.1.9)
 		// extension and append to template if necessary
 		if val.Id.Equal(asn1.ObjectIdentifier{2, 5, 29, 19}) {
+			zclog.Debug("===== csrv.Extensions 有 ca constraints信息")
 			var constraints csr.BasicConstraints
 			// var rest []byte
 			// if rest, err = asn1.Unmarshal(val.Value, &constraints); err != nil {
@@ -234,6 +244,8 @@ func createCertTemplateByCertificateRequest(csrBytes []byte) (template *x509.Cer
 }
 
 // 生成标准的国密x509证书请求
+//
+// Deprecated: 国密证书的签署改为使用`gitee.com/zhaochuninhefei/cfssl-gm`
 func createCertificateRequest(priv crypto.Signer, req *csr.CertificateRequest, key bccsp.Key) (csr []byte, err error) {
 	sigAlgo := signerAlgo(priv)
 	if sigAlgo == x509.UnknownSignatureAlgorithm {
@@ -269,6 +281,8 @@ func createCertificateRequest(priv crypto.Signer, req *csr.CertificateRequest, k
 }
 
 // 检查并获取签名算法
+//
+// Deprecated: 国密证书的签署改为使用`gitee.com/zhaochuninhefei/cfssl-gm`
 func signerAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
 	switch priv.Public().(type) {
 	case *sm2.PublicKey:
@@ -279,6 +293,8 @@ func signerAlgo(priv crypto.Signer) x509.SignatureAlgorithm {
 }
 
 // appendCAInfoToCSR appends CAConfig BasicConstraint extension to a CSR
+//
+// Deprecated: 国密证书的签署改为使用`gitee.com/zhaochuninhefei/cfssl-gm`
 func appendCAInfoToCSR(reqConf *csr.CAConfig, csreq *x509.CertificateRequest) error {
 	pathlen := reqConf.PathLength
 	if pathlen == 0 && !reqConf.PathLenZero {
