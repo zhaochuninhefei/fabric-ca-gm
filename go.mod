@@ -3,7 +3,7 @@ module gitee.com/zhaochuninhefei/fabric-ca-gm
 go 1.17
 
 require (
-	gitee.com/zhaochuninhefei/cfssl-gm v0.0.2
+	gitee.com/zhaochuninhefei/cfssl-gm v0.0.4
 	gitee.com/zhaochuninhefei/fabric-config-gm v0.0.4
 	gitee.com/zhaochuninhefei/fabric-gm v0.0.5
 	gitee.com/zhaochuninhefei/gmgo v0.0.18
